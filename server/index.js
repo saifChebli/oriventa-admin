@@ -8,6 +8,8 @@ import consultationRouter from './routes/consultation.route.js'
 import candidateRouter from './routes/candidate.route.js'
 import authRouter from './routes/auth.route.js'
 import creationRouter from './routes/creation.route.js'
+import clientRouter from './routes/client.route.js'
+import contactRouter from './routes/contact.route.js'
 import cookieParser from "cookie-parser";
 
 const app = express()
@@ -36,7 +38,8 @@ app.use( '/api/auth' , authRouter)
 app.use( '/api/consultations' , consultationRouter)
 app.use( '/api/dossiers' , candidateRouter)
 app.use('/api/creation' , creationRouter)
-
+app.use('/api/clients' , clientRouter)
+app.use('/api/contact' , contactRouter)
 
 // DB Connection
 

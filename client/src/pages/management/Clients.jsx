@@ -5,12 +5,18 @@ import { useState } from "react";
 import { useEffect } from "react";
 import axios from 'axios'
 import DetailsModal from './components/DetailModal';
+import CommentModal from './components/CommentModal';
 
 const Clients = () => {
 
-    const [bookingList, setBookingList] = useState([]);
+  const [bookingList, setBookingList] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+
+  const [comments, setComments] = useState([]);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+
+  const [newComment, setNewComment] = useState("");
 
    const getBookings = async () => {
     try {
@@ -34,6 +40,18 @@ const Clients = () => {
     setDetailsModalOpen(false);
     setSelectedBooking(null);
   };
+
+
+  const openCommentModal = (booking) => {
+    setSelectedBooking(booking);
+    setCommentModalOpen(true);
+    setComments(booking.comments);
+  }
+
+  const closeCommentModal = () => {
+    setCommentModalOpen(false);
+    setSelectedBooking(null);
+  }
 
     const getStatusBadge = (status) => {
     const statusConfig = {
@@ -119,7 +137,7 @@ const Clients = () => {
         <Menu.Item
           key="accept"
           icon={<MessageCircle size={16} />}
-          onClick={() => handleAccept(booking._id)}
+          onClick={() => openCommentModal(booking)}
         >
           Commentaire
         </Menu.Item>
@@ -289,6 +307,7 @@ const Clients = () => {
         onClose={closeDetailsModal}
         reservation={selectedBooking}
       />
+      <CommentModal consultation={selectedBooking} visible={commentModalOpen} onClose={closeCommentModal} />
     </div>
   )
 }

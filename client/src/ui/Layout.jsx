@@ -1,4 +1,4 @@
-import { UserPen, Home, Settings, ArrowLeftSquare, ChevronsLeft, ChevronsRight, LogOut, Users, File, Sun, Moon } from "lucide-react";
+import { UserPen, Home, Settings, ArrowLeftSquare, ChevronsLeft, ChevronsRight, LogOut, Users, File, Sun, Moon, Mail, FileText, User } from "lucide-react";
 import React, { useState } from "react";
 import { Link, Outlet , useNavigate } from "react-router-dom";
 import logo from '../assets/logo.webp'
@@ -17,7 +17,16 @@ const Layout = () => {
     { name: "Consultations" , path:"/clients-management" , icon: <Users />},
     { name: "Dossiers" , path:"/candidates-management" , icon: <UserPen />},
     { name: "Resume" , path : "/resume-management" , icon : <File />},
+    { name : "Contacts" , path : "/contacts-management" , icon : <Mail />},
     { name: "Settings", path: "/settings", icon: <Settings /> },
+    { name: "Logout", path: "/logout", icon: <LogOut /> },
+  ];
+
+  const clientNavItems = [
+    { name: "Dashboard", path: "/client-dashboard", icon: <Home /> },
+    { name: "Messages", path: "/client-mail", icon: <Mail /> },
+    { name: "Suivi", path: "/client-suivi", icon: <FileText /> },
+    { name: "Profile", path: "/client-profile", icon: <User /> },
     { name: "Logout", path: "/logout", icon: <LogOut /> },
   ];
 
@@ -27,6 +36,7 @@ const Layout = () => {
     navItems = [
           { name: "Dashboard", path: "/", icon: <Home /> },
           { name: "Consultations", path: "/clients-management", icon: <Users /> },
+          { name : "Contacts" , path : "/contacts-management" , icon : <Mail />},
           { name: "Settings", path: "/settings", icon: <Settings /> },
           { name: "Logout", path: "/logout", icon: <LogOut /> },
     ];
@@ -48,6 +58,10 @@ const Layout = () => {
           { name: "Settings", path: "/settings", icon: <Settings /> },
           { name: "Logout", path: "/logout", icon: <LogOut /> },
     ];
+  }
+
+  if (user?.role === "client") {
+    navItems = clientNavItems;
   }
 
   const [activeIndex, setActiveIndex] = useState(0);

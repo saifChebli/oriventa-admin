@@ -39,3 +39,24 @@ export const updateConsultationStatus = async (req, res) => {
     res.status(500).json({ error: "Failed to update consultation status" });
   }
 };
+
+
+export const addComment = async (req, res) => {
+  const { id } = req.params;
+  const { text } = req.body;
+  const userId = req.user.id;
+  try {
+    const consultation = await Consultation.findById(id)
+    const comment = consultation.comment
+    const updated = await Consultation.findByIdAndUpdate(
+      id,
+      { comment : [...comment,{ text , writer: userId }] },
+      { new: true }
+    );
+
+    res.json(updated);
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: "Failed to update consultation status" });
+  }
+};

@@ -117,7 +117,14 @@ const validateMatch = (password, confirmPassword) => {
   const createUser = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.post("http://localhost:5000/api/auth/add-user", user , { withCredentials: true });
+      
+      // Use different endpoints based on role
+      let endpoint = "http://localhost:5000/api/auth/add-user";
+      if (user.role === "client") {
+        endpoint = "http://localhost:5000/api/clients/create";
+      }
+      
+      const response = await axios.post(endpoint, user , { withCredentials: true });
       if (response.status === 201) {
         setIsModalOpen(false);
         toast.success("User created successfully");
@@ -428,6 +435,7 @@ const validateMatch = (password, confirmPassword) => {
               <option value="customerService">Service Consultation</option>
               <option value="candidateService">Service Dossier</option>
               <option value="resumeService">Service C.V</option>
+              <option value="client">Client</option>
               {/* <option value="SUPERADMIN">Super Admin</option> */}
             </select>
           </div>

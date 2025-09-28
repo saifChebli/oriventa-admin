@@ -216,7 +216,7 @@ const Candidates = () => {
           <tbody className="divide-y divide-gray-200">
             {filteredDossiers.map((dossier) => (
               <tr key={dossier._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm">{dossier._id}</td>
+                <td className="px-6 py-4 text-sm">{dossier.dossierNumber}</td>
                 <td className="px-6 py-4 text-sm">{dossier.fullName}</td>
                 <td className="px-6 py-4 text-sm">{dossier.phone}</td>
                 <td className="px-6 py-4 text-sm">{dossier.address}</td>

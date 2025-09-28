@@ -48,7 +48,15 @@ const consultationSchema = new mongoose.Schema(
     type: String,
     enum: ['pending', 'confirmed', 'decline' ,'comment' , 'unreachable'],
     default: 'pending'
-  }
+  },
+   comment: { type: [
+        {
+          text: { type: String },
+          date: { type: Date, default: Date.now },
+          writer : { type: mongoose.Schema.Types.ObjectId , ref : "User"  }
+        }
+      ] , default: []  },
+
   },
   { timestamps: true }
 );

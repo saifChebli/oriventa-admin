@@ -27,6 +27,14 @@ const dossierSchema = new mongoose.Schema(
     remarks: { type: String },
     paymentReceipt: { type: String },
     status: { type: String, enum: ["pending","traite" ,"accepted", "refuse" , "comment"], default: "pending" },
+    comment: { type: [
+      {
+        text: { type: String },
+        date: { type: Date, default: Date.now },
+        writer : { type: mongoose.Schema.Types.ObjectId , ref : "User" }
+      }
+    ] , default: []  },
+    
   },
   { timestamps: true }
 );

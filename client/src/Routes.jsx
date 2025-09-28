@@ -7,9 +7,14 @@ import Clients from "./pages/management/Clients";
 import Candidates from "./pages/management/Candidates";
 import Resume from "./pages/management/Resume";
 import Settings from "./pages/settings/Settings";
+import ClientDashboard from "./pages/client/ClientDashboard";
+import ClientMail from "./pages/client/ClientMail";
+import ClientSuivi from "./pages/client/ClientSuivi";
+import ClientProfile from "./pages/client/ClientProfile";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./ui/ProtectedRoutes";
 import { ThemeProvider } from "./context/ThemeContext";
+import Contact from "./pages/management/Contact";
 
 const Routes = () => {
   return (
@@ -23,12 +28,13 @@ const Routes = () => {
               <Route
                 element={
                   <ProtectedRoute
-                    allowedRoles={["manager", "admin", "customerService" , 'candidateService' , 'resumeService']}
+                    allowedRoles={["manager", "admin", "customerService" , 'candidateService' , 'resumeService', 'client']}
                   />
                 }
               >
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/contacts-management" element={<Contact />} />
               </Route>
               {/* Only admin can see/manage resumes */}
               <Route
@@ -53,6 +59,19 @@ const Routes = () => {
                 }
               >
                 <Route path="/resume-management" element={<Resume />} />
+              </Route>
+              {/* Client-specific routes */}
+              <Route
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["client"]}
+                  />
+                }
+              >
+                <Route path="/client-dashboard" element={<ClientDashboard />} />
+                <Route path="/client-mail" element={<ClientMail />} />
+                <Route path="/client-suivi" element={<ClientSuivi />} />
+                <Route path="/client-profile" element={<ClientProfile />} />
               </Route>
             </Route>
           </Route>
