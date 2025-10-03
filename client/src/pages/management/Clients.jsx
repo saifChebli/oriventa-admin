@@ -20,7 +20,7 @@ const Clients = () => {
 
    const getBookings = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/consultations");
+      const response = await axios.get("https://admin.oriventa-pro-service.com/api/consultations");
       setBookingList(response.data);
     } catch (error) {
       console.error(error);
@@ -89,15 +89,15 @@ const Clients = () => {
   };
 
     const handleAccept = async (id) => {
-    await axios.patch(`http://localhost:5000/api/consultations/update-consultation-status/${id}`, { status: "confirmed" });
+    await axios.patch(`https://admin.oriventa-pro-service.com/api/consultations/update-consultation-status/${id}`, { status: "confirmed" });
     getBookings();
   };
     const handleDecline = async (id) => {
-    await axios.patch(`http://localhost:5000/api/consultations/update-consultation-status/${id}`, { status: "decline" });
+    await axios.patch(`https://admin.oriventa-pro-service.com/api/consultations/update-consultation-status/${id}`, { status: "decline" });
     getBookings();
   };
     const handleInjoignable = async (id) => {
-    await axios.patch(`http://localhost:5000/api/consultations/update-consultation-status/${id}`, { status: "unreachable" });
+    await axios.patch(`https://admin.oriventa-pro-service.com/api/consultations/update-consultation-status/${id}`, { status: "unreachable" });
     getBookings();
   };
 

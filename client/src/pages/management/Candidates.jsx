@@ -21,7 +21,7 @@ const Candidates = () => {
   // Fetch dossiers from backend
   const getDossiers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/dossiers");
+      const response = await axios.get("https://admin.oriventa-pro-service.com/api/dossiers");
       setDossierList(response.data);
     } catch (error) {
       console.error("Erreur de récupération des dossiers:", error);
@@ -66,7 +66,7 @@ const Candidates = () => {
   const handleUpdateStatus = async (id, status) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/dossiers/update-candidate-status/${id}`,
+        `https://admin.oriventa-pro-service.com/api/dossiers/update-candidate-status/${id}`,
         { status }
       );
       getDossiers();

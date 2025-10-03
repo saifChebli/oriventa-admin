@@ -22,7 +22,7 @@ const Contact = () => {
   // Fetch contacts from backend
   const getContacts = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/contact/get-list" , { withCredentials: true });
+      const response = await axios.get("https://admin.oriventa-pro-service.com/api/contact/get-list" , { withCredentials: true });
       setContactList(response.data);
     } catch (error) {
       console.error("Erreur de récupération des Contacts:", error);
@@ -36,7 +36,7 @@ const Contact = () => {
    const handleUpdateStatus = async (id, status) => {
       try {
         await axios.patch(
-          `http://localhost:5000/api/contact/${id}`,
+          `https://admin.oriventa-pro-service.com/api/contact/${id}`,
           { isViewed: status }
         );
         getContacts();

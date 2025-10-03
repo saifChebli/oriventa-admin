@@ -12,7 +12,7 @@ const Resume = () => {
   // Fetch resumes from backend
   const getResumes = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/creation" , { withCredentials: true });
+      const response = await axios.get("https://admin.oriventa-pro-service.com/api/creation" , { withCredentials: true });
       setResumeList(response.data);
     } catch (error) {
       console.error("Erreur de récupération des CV:", error);
@@ -55,7 +55,7 @@ const Resume = () => {
   const handleUpdateStatus = async (id, status) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/resumes/update-status/${id}`,
+        `https://admin.oriventa-pro-service.com/api/resumes/update-status/${id}`,
         { status }
       );
       getResumes();
@@ -77,7 +77,7 @@ const Resume = () => {
         key="download"
         icon={<Download size={16} />}
         // onClick={() =>
-        //   window.open(`http://localhost:5000/${resume.filePath}`, "_blank")
+        //   window.open(`https://admin.oriventa-pro-service.com/${resume.filePath}`, "_blank")
         // }
       >
         Télécharger

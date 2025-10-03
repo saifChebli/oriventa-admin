@@ -89,7 +89,7 @@ const validateMatch = (password, confirmPassword) => {
 
   const getConnectedUser = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/auth/me" , { withCredentials: true });
+      const response = await axios.get("https://admin.oriventa-pro-service.com/api/auth/me" , { withCredentials: true });
       setProfile(response.data);
     } catch (error) {
       console.error(error);
@@ -119,9 +119,9 @@ const validateMatch = (password, confirmPassword) => {
       setIsLoading(true);
       
       // Use different endpoints based on role
-      let endpoint = "http://localhost:5000/api/auth/add-user";
+      let endpoint = "https://admin.oriventa-pro-service.com/api/auth/add-user";
       if (user.role === "client") {
-        endpoint = "http://localhost:5000/api/clients/create";
+        endpoint = "https://admin.oriventa-pro-service.com/api/clients/create";
       }
       
       const response = await axios.post(endpoint, user , { withCredentials: true });
@@ -153,7 +153,7 @@ const validateMatch = (password, confirmPassword) => {
 
   const getStaffMembers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/auth/all-users" , { withCredentials: true });
+      const response = await axios.get("https://admin.oriventa-pro-service.com/api/auth/all-users" , { withCredentials: true });
       setUsers(response.data);
     } catch (error) {
       console.error(error);

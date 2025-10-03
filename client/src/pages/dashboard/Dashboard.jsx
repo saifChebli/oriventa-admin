@@ -37,9 +37,9 @@ const Dashboard = () => {
   const getStats = async () => {
     try {
       const [candidatesRes, resumesRes, consultationsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/dossiers" , { withCredentials: true }),
-        axios.get("http://localhost:5000/api/creation" , { withCredentials: true }),
-        axios.get("http://localhost:5000/api/consultations" , { withCredentials: true }),
+        axios.get("https://admin.oriventa-pro-service.com/api/dossiers" , { withCredentials: true }),
+        axios.get("https://admin.oriventa-pro-service.com/api/creation" , { withCredentials: true }),
+        axios.get("https://admin.oriventa-pro-service.com/api/consultations" , { withCredentials: true }),
       ]);
 
       setStats({

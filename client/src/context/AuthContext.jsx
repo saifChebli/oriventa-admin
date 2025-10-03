@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/auth/me", {
+        const res = await axios.get("https://oriventa-pro-service.com/api/auth/me", {
           withCredentials: true,
         });
         setUser(res.data);
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.get("http://localhost:5000/api/auth/logout", { withCredentials: true });
+      await axios.get("https://admin.oriventa-pro-service.com/api/auth/logout", { withCredentials: true });
     } catch (e) {
       console.error("Logout failed:", e);
     }
