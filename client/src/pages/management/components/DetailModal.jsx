@@ -18,6 +18,14 @@ const DetailsModal = ({ open, onClose, reservation }) => {
       onCancel={onClose}
       footer={null}
       centered
+       width={{
+          xs: '90%',
+          sm: '80%',
+          md: '70%',
+          lg: '60%',
+          xl: '50%',
+          xxl: '40%',
+        }}
     >
       <Descriptions
         bordered

@@ -2,7 +2,8 @@ import Dossier from "../../models/Dossier.js";
 import express from "express";
 import multer from "multer";
 import path from "path";
-
+import fs from "fs";
+import archiver from "archiver";
 
 
 
@@ -21,10 +22,15 @@ export const addCandidate = async (req, res) => {
     const dossierNumber = data.dossierNumber;
     const fullName = data.fullName?.replace(/\s+/g, "_");
     const basePath = path.join("uploads", `${dossierNumber}_${fullName}`);
-
     const dossier = new Dossier({
       ...data,
+      passportPhoto: req.files?.passportPhoto?.[0]
+        ? path.join(basePath, req.files.passportPhoto[0].filename)
+        : null,
       cvFile: req.files?.cvFile?.[0] ? path.join(basePath, req.files.cvFile[0].filename) : null,
+      photoPersonne: req.files?.photoPersonne?.[0]
+        ? path.join(basePath, req.files.photoPersonne[0].filename)
+        : null,
       attestationsTravail: req.files?.attestationsTravail?.[0]
         ? path.join(basePath, req.files.attestationsTravail[0].filename)
         : null,
@@ -70,6 +76,8 @@ export const addComment = async (req, res) => {
   const { text } = req.body;
   const userId = req.user.id;
   try {
+     const dossier = await Dossier.findById(id)
+        const comment = dossier.comment
     const updated = await Dossier.findByIdAndUpdate(
       id,
       { comment : [...comment, { text , writer: userId }] },
@@ -78,6 +86,51 @@ export const addComment = async (req, res) => {
 
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: "Failed to update consultation status" });
+    console.log(err)
+    res.status(500).json({ error: "Failed to update dossier status" });
+  }
+};
+
+
+export const downloadFolder = async (req, res) => {
+  try {
+    const { dossierNumber, fullName } = req.params;
+    const folderPath = path.join("uploads", `${dossierNumber}_${fullName}`);
+
+    // Check folder existence
+    if (!fs.existsSync(folderPath)) {
+      return res.status(404).json({ message: "Folder not found" });
+    }
+
+    // ZIP filename
+    const zipFileName = `${dossierNumber}_${fullName}.zip`;
+
+    // Set response headers
+    res.setHeader("Content-Disposition", `attachment; filename=${zipFileName}`);
+    res.setHeader("Content-Type", "application/zip");
+
+    // Create archive and pipe to response
+    const archive = archiver("zip", { zlib: { level: 9 } });
+    archive.pipe(res);
+
+    // Add entire folder
+    archive.directory(folderPath, false);
+
+    // Finalize ZIP
+    archive.finalize();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error generating ZIP file" });
+  }
+}
+
+export const deleteCandidate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Dossier.findByIdAndDelete(id);
+    res.status(200).json({ message: "Dossier deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete dossier" });
   }
 };

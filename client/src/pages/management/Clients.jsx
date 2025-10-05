@@ -1,14 +1,25 @@
-import React from 'react'
+import React from "react";
 import { Dropdown, Menu } from "antd";
-import { MoreVertical, Eye, Check, UserRoundCheck , X, MessageCircle, Info } from "lucide-react";
+import {
+  MoreVertical,
+  Eye,
+  Check,
+  UserRoundCheck,
+  X,
+  MessageCircle,
+  Info,
+  MessageSquare,
+  Trash,
+} from "lucide-react";
 import { useState } from "react";
 import { useEffect } from "react";
-import axios from 'axios'
-import DetailsModal from './components/DetailModal';
-import CommentModal from './components/CommentModal';
+import DetailsModal from "./components/DetailModal";
+import CommentModal from "./components/CommentModal";
+import api from "../../../api";
+import { useAuth } from "../../context/AuthContext";
 
 const Clients = () => {
-
+  const { user } = useAuth();
   const [bookingList, setBookingList] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -18,9 +29,9 @@ const Clients = () => {
 
   const [newComment, setNewComment] = useState("");
 
-   const getBookings = async () => {
+  const getBookings = async () => {
     try {
-      const response = await axios.get("https://admin.oriventa-pro-service.com/api/consultations");
+      const response = await api.get("/api/consultations");
       setBookingList(response.data);
     } catch (error) {
       console.error(error);
@@ -31,7 +42,7 @@ const Clients = () => {
     getBookings();
   }, []);
 
-   const openDetailsModal = (booking) => {
+  const openDetailsModal = (booking) => {
     setSelectedBooking(booking);
     setDetailsModalOpen(true);
   };
@@ -41,19 +52,18 @@ const Clients = () => {
     setSelectedBooking(null);
   };
 
-
   const openCommentModal = (booking) => {
     setSelectedBooking(booking);
     setCommentModalOpen(true);
     setComments(booking.comments);
-  }
+  };
 
   const closeCommentModal = () => {
     setCommentModalOpen(false);
     setSelectedBooking(null);
-  }
+  };
 
-    const getStatusBadge = (status) => {
+  const getStatusBadge = (status) => {
     const statusConfig = {
       confirmed: {
         color: "bg-green-100 text-green-700",
@@ -88,17 +98,35 @@ const Clients = () => {
     );
   };
 
-    const handleAccept = async (id) => {
-    await axios.patch(`https://admin.oriventa-pro-service.com/api/consultations/update-consultation-status/${id}`, { status: "confirmed" });
+  const handleAccept = async (id) => {
+    await api.patch(`/api/consultations/update-consultation-status/${id}`, {
+      status: "confirmed",
+    });
     getBookings();
   };
-    const handleDecline = async (id) => {
-    await axios.patch(`https://admin.oriventa-pro-service.com/api/consultations/update-consultation-status/${id}`, { status: "decline" });
+  const handleDecline = async (id) => {
+    await api.patch(`/api/consultations/update-consultation-status/${id}`, {
+      status: "decline",
+    });
     getBookings();
   };
-    const handleInjoignable = async (id) => {
-    await axios.patch(`https://admin.oriventa-pro-service.com/api/consultations/update-consultation-status/${id}`, { status: "unreachable" });
+
+  const handleInjoignable = async (id) => {
+    await api.patch(`/api/consultations/update-consultation-status/${id}`, {
+      status: "unreachable",
+    });
     getBookings();
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      if (window.confirm("Are you sure you want to delete this dossier?")){
+      await api.delete(`/api/consultations/delete-consultation/${id}`, { withCredentials: true });
+      getBookings();
+      }
+    } catch (error) {
+      console.error("Error deleting dossier:", error);
+    }
   };
 
   // const handleDecline = async (id) => {
@@ -111,68 +139,79 @@ const Clients = () => {
   //   getBookings();
   // };
 
-   const actionMenu = (booking) => (
-      <Menu>
+  const actionMenu = (booking) => (
+    <Menu>
+      <Menu.Item
+        key="view"
+        icon={<Eye size={16} />}
+        onClick={() => openDetailsModal(booking)}
+      >
+        View Details
+      </Menu.Item>
+      <Menu.Item
+        key="checkedIn"
+        icon={<Check size={16} />}
+        onClick={() => handleAccept(booking._id)}
+      >
+        Confirmer
+      </Menu.Item>
+      <Menu.Item
+        key="accept"
+        icon={<Info size={16} />}
+        onClick={() => handleInjoignable(booking._id)}
+      >
+        Injoignable
+      </Menu.Item>
+      <Menu.Item
+        key="accept"
+        icon={<MessageCircle size={16} />}
+        onClick={() => openCommentModal(booking)}
+      >
+        Commentaire
+      </Menu.Item>
+      <Menu.Item
+        key="decline"
+        icon={<X size={16} />}
+        onClick={() => handleDecline(booking._id)}
+      >
+        Refuser
+      </Menu.Item>
+      {user.role === "manager" && (
         <Menu.Item
-          key="view"
-          icon={<Eye size={16} />}
-          onClick={() => openDetailsModal(booking)}
+          key="delete"
+          icon={<Trash size={16} />}
+          onClick={() => handleDelete(booking._id)}
         >
-          View Details
+          Delete
         </Menu.Item>
-        <Menu.Item
-          key="checkedIn"
-          icon={<Check size={16} />}
-          onClick={() => handleAccept(booking._id)}
-        >
-          Confirmer
-        </Menu.Item>
-        <Menu.Item
-          key="accept"
-          icon={<Info size={16} />}
-          onClick={() => handleInjoignable(booking._id)}
-        >
-          Injoignable
-        </Menu.Item>
-        <Menu.Item
-          key="accept"
-          icon={<MessageCircle size={16} />}
-          onClick={() => openCommentModal(booking)}
-        >
-          Commentaire
-        </Menu.Item>
-        <Menu.Item
-          key="decline"
-          icon={<X size={16} />}
-          onClick={() => handleDecline(booking._id)}
-        >
-          Refuser
-        </Menu.Item>
-      </Menu>
-    );
+      )}
+    </Menu>
+  );
 
-     const [filterCreated, setfilterCreated] = useState("all");
-      const [filterStatus, setFilterStatus] = useState("all");
-      const [filterFullName, setfilterFullName] = useState("");
-    
-      const filteredBookings = bookingList.filter((booking) => {
-        const roomTypeMatches =
-          filterCreated === "all" || booking.created_at === filterCreated;
-        const statusMatches =
-          filterStatus === "all" || booking.status === filterStatus;
-        const filterFullNameMatches =
-          filterFullName === "" ||
-          (booking.fullName &&
-            booking.fullName.toLowerCase().includes(filterFullName.toLowerCase()));
-    
-        return roomTypeMatches && statusMatches && filterFullNameMatches;
-      });
+  const [filterCreated, setfilterCreated] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterFullName, setfilterFullName] = useState("");
+
+  const filteredBookings = bookingList.filter((booking) => {
+    const roomTypeMatches =
+      filterCreated === "all" || booking.created_at === filterCreated;
+    const statusMatches =
+      filterStatus === "all" || booking.status === filterStatus;
+    const filterFullNameMatches =
+      filterFullName === "" ||
+      (booking.fullName &&
+        booking.fullName.toLowerCase().includes(filterFullName.toLowerCase()));
+
+    return roomTypeMatches && statusMatches && filterFullNameMatches;
+  });
   return (
-     <div className="p-6">
+    <div className="p-6">
       <div className="rounded-lg shadow border border-gray-300 p-6">
         <div>
           <h1 className="text-2xl font-bold">Consultations Dashboard</h1>
-          <p className=" mt-1">Here you can view and manage your consultations. </p>
+          <p className=" mt-1">
+            Here you can view and manage your consultations.{" "}
+          </p>
         </div>
       </div>
       <div className="overflow-x-auto rounded-lg shadow border border-gray-300 p-6 my-10">
@@ -255,10 +294,7 @@ const Clients = () => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredBookings?.map((booking) => (
-              <tr
-                key={booking.id}
-                className="hover:bg-gray-50 transition-fast"
-              >
+              <tr key={booking.id} className="hover:bg-gray-50 transition-fast">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium ">
                   {booking._id}
                 </td>
@@ -274,7 +310,7 @@ const Clients = () => {
                     <div className="text-sm ">{booking.phone}</div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-wrap ">
                   <div>
                     <div className="text-sm ">{booking.address}</div>
                   </div>
@@ -287,8 +323,19 @@ const Clients = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm ">
                   {new Date(booking.createdAt).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="relative px-6 py-4 whitespace-nowrap">
                   {getStatusBadge(booking.status)}
+                  {booking.comment.length > 0 ? (
+                    <span
+                      onClick={() => {
+                        // setSelectedBooking(booking);
+                        openCommentModal(booking);
+                      }}
+                      className="text-gray-600 hover:text-black absolute right-4 cursor-pointer"
+                    >
+                      <MessageSquare size={10} />
+                    </span>
+                  ) : null}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Dropdown overlay={actionMenu(booking)} trigger={["click"]}>
@@ -302,14 +349,20 @@ const Clients = () => {
           </tbody>
         </table>
       </div>
-        <DetailsModal
+      <DetailsModal
         open={detailsModalOpen}
         onClose={closeDetailsModal}
         reservation={selectedBooking}
       />
-      <CommentModal consultation={selectedBooking} visible={commentModalOpen} onClose={closeCommentModal} />
+      <CommentModal
+        url="/api/consultations/add-comment"
+        getBookings={getBookings}
+        consultation={selectedBooking}
+        visible={commentModalOpen}
+        onClose={closeCommentModal}
+      />
     </div>
-  )
-}
+  );
+};
 
-export default Clients
+export default Clients;

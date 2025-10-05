@@ -4,24 +4,31 @@ import {
   MoreVertical,
   Eye,
   Check,
-  UserRoundCheck,
   X,
   MessageCircle,
   Info,
+  MessageSquare,
+  Download,
+  Trash,
 } from "lucide-react";
-import axios from "axios";
-import DetailsModal from "./components/DetailModal";
-import CandidatesDetailsModal from "./components/CandidatesDetailsModal";
 
+import CandidatesDetailsModal from "./components/CandidatesDetailsModal";
+import api from "../../../api";
+import CommentModal from "./components/CommentModal";
+import { useAuth } from "../../context/AuthContext";
 const Candidates = () => {
+
+  const  {user } = useAuth()
+
   const [dossierList, setDossierList] = useState([]);
   const [selectedDossier, setSelectedDossier] = useState(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [comments, setComments] = useState([]);
   // Fetch dossiers from backend
   const getDossiers = async () => {
     try {
-      const response = await axios.get("https://admin.oriventa-pro-service.com/api/dossiers");
+      const response = await api.get("/api/dossiers");
       setDossierList(response.data);
     } catch (error) {
       console.error("Erreur de récupération des dossiers:", error);
@@ -42,6 +49,15 @@ const Candidates = () => {
     setDetailsModalOpen(false);
   };
 
+    const openCommentModal = (booking) => {
+    setSelectedDossier(booking);
+    setCommentModalOpen(true);
+    setComments(booking.comments);
+  }
+  const closeCommentModal = () => {
+    setCommentModalOpen(false);
+    setSelectedDossier(null);
+  }
   // Status badge mapping
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -65,8 +81,8 @@ const Candidates = () => {
   // Actions for each dossier
   const handleUpdateStatus = async (id, status) => {
     try {
-      await axios.patch(
-        `https://admin.oriventa-pro-service.com/api/dossiers/update-candidate-status/${id}`,
+      await api.patch(
+        `/api/dossiers/update-candidate-status/${id}`,
         { status }
       );
       getDossiers();
@@ -74,6 +90,31 @@ const Candidates = () => {
       console.error("Erreur maj status:", error);
     }
   };
+
+  const handleDownload = async (dossierNumber, fullName) => {
+  const url = `http://localhost:5000/api/dossiers/download-folder/${dossierNumber}/${fullName}`;
+  
+  // Trigger browser download
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `${dossierNumber}_${fullName}.zip`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
+const handleDelete = async (id) => {
+  try {
+    if (window.confirm("Are you sure you want to delete this dossier?")){
+    await api.delete(`/api/dossiers/delete-candidate/${id}`, { withCredentials: true });
+    getDossiers();
+    }
+   
+  } catch (error) {
+    console.error("Error deleting dossier:", error);
+  }
+};
+
 
   const actionMenu = (dossier) => (
     <Menu>
@@ -84,6 +125,16 @@ const Candidates = () => {
       >
         Voir détails
       </Menu.Item>
+       <Menu.Item
+              key="download"
+              icon={<Download size={16} />}
+              // onClick={() =>
+              //   window.open(`https://admin.oriventa-pro-service.com/${resume.filePath}`, "_blank")
+              // }
+               onClick={() => handleDownload(dossier.dossierNumber, dossier.fullName)}
+            >
+              Télécharger
+            </Menu.Item>
       <Menu.Item
         key="accepted"
         icon={<Check size={16} />}
@@ -101,7 +152,7 @@ const Candidates = () => {
       <Menu.Item
         key="comment"
         icon={<MessageCircle size={16} />}
-        onClick={() => handleUpdateStatus(dossier._id, "comment")}
+        onClick={() => openCommentModal(dossier)}
       >
         Commentaire
       </Menu.Item>
@@ -112,6 +163,15 @@ const Candidates = () => {
       >
         Refuser
       </Menu.Item>
+       {user.role === "manager" && (
+              <Menu.Item
+                key="delete"
+                icon={<Trash size={16} />}
+                onClick={() => handleDelete(dossier._id)}
+              >
+                Delete
+              </Menu.Item>
+            )}
     </Menu>
   );
 
@@ -186,8 +246,8 @@ const Candidates = () => {
         </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg shadow border border-gray-300 p-6">
-        <table className="w-full border-collapse">
+      <div className="overflow-x-auto rounded-lg  shadow border border-gray-300 p-6">
+        <table className="w-full border-collapse ">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase">
@@ -219,11 +279,28 @@ const Candidates = () => {
                 <td className="px-6 py-4 text-sm">{dossier.dossierNumber}</td>
                 <td className="px-6 py-4 text-sm">{dossier.fullName}</td>
                 <td className="px-6 py-4 text-sm">{dossier.phone}</td>
-                <td className="px-6 py-4 text-sm">{dossier.address}</td>
+                <td className="px-6 py-4 text-sm whitespace-wrap">{dossier.address}</td>
                 <td className="px-6 py-4 text-sm">
                   {new Date(dossier.createdAt).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4">{getStatusBadge(dossier.status)}</td>
+                <td className="relative px-6 py-4">
+                  {getStatusBadge(dossier.status)}
+                {dossier.comment.length > 0 ? (
+                                    <span
+                                      onClick={() => {
+                                        // setSelectedBooking(booking);
+                                        openCommentModal(dossier);
+                                      }}
+                                      className="text-gray-600 hover:text-black absolute right-12 cursor-pointer"
+                                    >
+                                      <MessageSquare size={10} />
+                                    </span> 
+                                  ) : 
+                                    null
+                                  
+                                  }
+
+                </td>
                 <td className="px-6 py-4">
                   <Dropdown overlay={actionMenu(dossier)} trigger={["click"]}>
                     <button className="text-gray-600 hover:text-black">
@@ -242,6 +319,8 @@ const Candidates = () => {
               onClose={closeDetailsModal}
               dossier={selectedDossier}
             />
+                 <CommentModal url="/api/dossiers/add-comment" getBookings={getDossiers} consultation={selectedDossier} visible={commentModalOpen} onClose={closeCommentModal} />
+           
     </div>
   );
 };

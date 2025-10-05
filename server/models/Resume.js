@@ -18,16 +18,18 @@ const resumeSchema = new mongoose.Schema(
     associations: { type: String },
     skills: { type: String, required: true },
 
-    cvType: {
-      type: String,
-      enum: ["Français", "Anglais"],
-      required: true,
+   cvTypes: {
+      europass: [{ type: String }],
+      allemand: [{ type: String }],
+      italian: [{ type: String }],
+      canadien: [{ type: String }],
+      golfe: [{ type: String }],
     },
 
     remarks: { type: String },
 
     paymentReceipt: { type: String, required: true },
-    status: { type: String, enum: ["pending","traite" ,"accepted", "refuse" , "comment"], default: "pending" },
+    status: { type: String, enum: ["pending" ,"accepted", "refuse" ], default: "pending" },
   },
   { timestamps: true }
 );

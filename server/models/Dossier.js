@@ -10,8 +10,9 @@ const dossierSchema = new mongoose.Schema(
     birthDate: { type: Date, required: true },
     jobType: { type: String, required: true },
     hasCV: { type: String, enum: ["Oui", "Non"], required: true },
-
+    passportPhoto: { type: String },
     cvFile: { type: String }, // chemin du fichier
+    photoPersonne: { type: String },
     experiences: { type: String, required: true },
     exp1: { type: String },
     exp2: { type: String },
@@ -26,15 +27,21 @@ const dossierSchema = new mongoose.Schema(
     skills: { type: String, required: true },
     remarks: { type: String },
     paymentReceipt: { type: String },
-    status: { type: String, enum: ["pending","traite" ,"accepted", "refuse" , "comment"], default: "pending" },
-    comment: { type: [
-      {
-        text: { type: String },
-        date: { type: Date, default: Date.now },
-        writer : { type: mongoose.Schema.Types.ObjectId , ref : "User" }
-      }
-    ] , default: []  },
-    
+    status: {
+      type: String,
+      enum: ["pending", "traite", "accepted", "refuse", "comment"],
+      default: "pending",
+    },
+    comment: {
+      type: [
+        {
+          text: { type: String },
+          date: { type: Date, default: Date.now },
+          writer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

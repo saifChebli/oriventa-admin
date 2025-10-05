@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { Dropdown, Menu } from "antd";
-import { MoreVertical, Eye, Download, Check, X } from "lucide-react";
+import { MoreVertical, Eye, Download, Check, X, Trash } from "lucide-react";
 import axios from "axios";
+import api from "../../../api";
+import ResumeDetailsModal from "./components/ResumeDetailsModal";
+import { useAuth } from "../../context/AuthContext";
 // import ResumeDetailsModal from "./components/ResumeDetailsModal";
 
 const Resume = () => {
   const [resumeList, setResumeList] = useState([]);
   const [selectedResume, setSelectedResume] = useState(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-
+  const {user} = useAuth()
   // Fetch resumes from backend
   const getResumes = async () => {
     try {
-      const response = await axios.get("https://admin.oriventa-pro-service.com/api/creation" , { withCredentials: true });
+      const response = await api.get("/api/creation" , { withCredentials: true });
       setResumeList(response.data);
     } catch (error) {
       console.error("Erreur de récupération des CV:", error);
@@ -22,6 +25,17 @@ const Resume = () => {
   useEffect(() => {
     getResumes();
   }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      if (window.confirm("Voulez-vous vraiment supprimer ce CV ?")) {
+      await api.delete(`/api/creation/delete-resume/${id}`, { withCredentials: true });
+      getResumes();
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du CV:", error);
+    }
+  };
 
   // Open/close details modal
   const openDetailsModal = (resume) => {
@@ -36,9 +50,9 @@ const Resume = () => {
   // Status badge mapping
   const getStatusBadge = (status) => {
     const statusConfig = {
-      approved: { color: "bg-green-100 text-green-700", label: "Approuvé" },
+      accepted: { color: "bg-green-100 text-green-700", label: "Approuvé" },
       pending: { color: "bg-orange-100 text-orange-700", label: "En attente" },
-      rejected: { color: "bg-red-100 text-red-700", label: "Rejeté" },
+      refuse: { color: "bg-red-100 text-red-700", label: "Rejeté" },
     };
 
     const config = statusConfig[status] || statusConfig.pending;
@@ -54,8 +68,8 @@ const Resume = () => {
   // Actions
   const handleUpdateStatus = async (id, status) => {
     try {
-      await axios.patch(
-        `https://admin.oriventa-pro-service.com/api/resumes/update-status/${id}`,
+      await api.patch(
+        `/api/creation/update-status/${id}`,
         { status }
       );
       getResumes();
@@ -63,7 +77,15 @@ const Resume = () => {
       console.error("Erreur maj status:", error);
     }
   };
-
+const handleDownload = (filename) => {
+  const url = `http://localhost:5000/api/creation/download/${filename}`;
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
   const actionMenu = (resume) => (
     <Menu>
       <Menu.Item
@@ -74,28 +96,34 @@ const Resume = () => {
         Voir détails
       </Menu.Item>
       <Menu.Item
-        key="download"
-        icon={<Download size={16} />}
-        // onClick={() =>
-        //   window.open(`https://admin.oriventa-pro-service.com/${resume.filePath}`, "_blank")
-        // }
-      >
-        Télécharger
-      </Menu.Item>
-      <Menu.Item
         key="approve"
         icon={<Check size={16} />}
-        onClick={() => handleUpdateStatus(resume._id, "approved")}
+        onClick={() => handleUpdateStatus(resume._id, "accepted")}
       >
         Approuver
       </Menu.Item>
+      {/* <Menu.Item
+        icon={<Download size={16} />}
+        onClick={() => handleDownload(resume.paymentReceipt)}
+      >
+        Télécharger
+      </Menu.Item> */}
       <Menu.Item
         key="reject"
         icon={<X size={16} />}
-        onClick={() => handleUpdateStatus(resume._id, "rejected")}
+        onClick={() => handleUpdateStatus(resume._id, "refuse")}
       >
         Rejeter
       </Menu.Item>
+       {user.role === "manager" && (
+              <Menu.Item
+                key="delete"
+                icon={<Trash size={16} />}
+                onClick={() => handleDelete(resume._id)}
+              >
+                Delete
+              </Menu.Item>
+            )}
     </Menu>
   );
 
@@ -223,11 +251,11 @@ const Resume = () => {
       </div>
 
       {/* Modal */}
-      {/* <ResumeDetailsModal
+      <ResumeDetailsModal
         open={detailsModalOpen}
         onClose={closeDetailsModal}
         resume={selectedResume}
-      /> */}
+      />
     </div>
   );
 };

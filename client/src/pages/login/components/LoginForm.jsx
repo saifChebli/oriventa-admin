@@ -3,6 +3,7 @@ import { useState } from "react"
 import toast from "react-hot-toast"
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
+import api from "../../../../api";
 
 const LoginForm = () => {
 
@@ -50,8 +51,8 @@ const LoginForm = () => {
   }
 
   try {
-    const response = await axios.post(
-      "https://admin.oriventa-pro-service.com/api/auth/login",
+    const response = await api.post(
+      "/api/auth/login",
       user,
       { withCredentials: true }
     );

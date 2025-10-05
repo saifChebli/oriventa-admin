@@ -60,3 +60,15 @@ export const addComment = async (req, res) => {
     res.status(500).json({ error: "Failed to update consultation status" });
   }
 };
+
+
+export const deleteConsultation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Consultation.findByIdAndDelete(id);
+    res.status(200).json({ message: "Consultation deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete consultation" });
+  }
+};

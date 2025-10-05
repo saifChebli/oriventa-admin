@@ -4,6 +4,7 @@ import { Link, Outlet , useNavigate } from "react-router-dom";
 import logo from '../assets/logo.webp'
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import api from "../../api";
 
 const Layout = () => {
 
@@ -81,7 +82,7 @@ const Layout = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.get('https://admin.oriventa-pro-service.com/api/auth/logout' , { withCredentials: true });
+      const response = await api.get('/api/auth/logout' , { withCredentials: true });
       if(response){
           navigate('/login')
       }
@@ -95,8 +96,8 @@ const Layout = () => {
     <div>
       <div className="flex">
 
-        <div style={{ width: isOpen ? "210px" : "120px" , transition: "width 0.3s ease-in-out" }} className="border-r flex flex-col gap-12 items-center shadow-lg border-gray-200 text-white p-4">
-          <div style={{ width: "100px"}}>
+        <div style={{ width: isOpen ? "160px" : "80px" , transition: "width 0.3s ease-in-out" }} className="border-r flex flex-col gap-12 items-center shadow-lg border-gray-200 text-white p-4">
+          <div style={{ width: isOpen ? "100px" : "80px" , transition: "width 0.3s ease-in-out" }}>
             <img src={logo} alt="" />
           </div>
           <div className="p-4 text-black ">

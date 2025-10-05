@@ -17,6 +17,6 @@ router.delete('/:clientId', verifyToken, checkRole, deleteClientAccount);
 
 // Routes for clients to manage their own profile
 router.get('/profile', verifyToken, getClientProfile);
-router.put('/profile', verifyToken, updateClientProfile);
-
+router.patch('/update-user/:id', verifyToken, updateClientProfile);
+router.delete('/delete-user/:id', verifyToken, deleteClientAccount);
 export default router;

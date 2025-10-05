@@ -37,3 +37,15 @@ export const updateContactStatus = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+
+export const deleteContact = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Contact.findByIdAndDelete(id);
+    res.status(200).json({ message: "Contact deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete contact" });
+  }
+};

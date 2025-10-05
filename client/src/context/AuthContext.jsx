@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import api from "../../api";
 
 const AuthContext = createContext();
 
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get("https://oriventa-pro-service.com/api/auth/me", {
+        const res = await api.get("/api/auth/me", {
           withCredentials: true,
         });
         setUser(res.data);
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.get("https://admin.oriventa-pro-service.com/api/auth/logout", { withCredentials: true });
+      await api.get("/api/auth/logout", { withCredentials: true });
     } catch (e) {
       console.error("Logout failed:", e);
     }

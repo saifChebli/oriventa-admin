@@ -6,6 +6,8 @@ import {
   MessageCircle,
   TrendingUp,
   Clock,
+  MessageCircleCode,
+  PhoneCall,
 } from "lucide-react";
 import axios from "axios";
 import {
@@ -19,11 +21,13 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import api from "../../../api";
 const Dashboard = () => {
   const [stats, setStats] = useState({
     candidates: 0,
     resumes: 0,
     consultations: 0,
+    contacts : 0,
     pendingCandidates: 0,
     approvedResumes: 0,
     scheduledConsultations: 0,
@@ -36,24 +40,26 @@ const Dashboard = () => {
   // Fetch stats from backend
   const getStats = async () => {
     try {
-      const [candidatesRes, resumesRes, consultationsRes] = await Promise.all([
-        axios.get("https://admin.oriventa-pro-service.com/api/dossiers" , { withCredentials: true }),
-        axios.get("https://admin.oriventa-pro-service.com/api/creation" , { withCredentials: true }),
-        axios.get("https://admin.oriventa-pro-service.com/api/consultations" , { withCredentials: true }),
+      const [candidatesRes, resumesRes, consultationsRes ,contactsRes] = await Promise.all([
+        api.get("/api/dossiers" , { withCredentials: true }),
+        api.get("/api/creation" , { withCredentials: true }),
+        api.get("/api/consultations" , { withCredentials: true }),
+        api.get("/api/contact/get-list" , { withCredentials: true }),
       ]);
 
       setStats({
         candidates: candidatesRes.data.length,
         resumes: resumesRes.data.length,
         consultations: consultationsRes.data.length,
+        contacts : contactsRes.data.length,
         pendingCandidates: candidatesRes.data.filter(
           (c) => c.status === "pending"
         ).length,
         approvedResumes: resumesRes.data.filter(
-          (r) => r.status === "traite"
+          (r) => r.status === "accepted"
         ).length,
         scheduledConsultations: consultationsRes.data.filter(
-          (c) => c.status === "confirmed"
+          (c) => c.status === "pending"
         ).length,
       });
 
@@ -116,7 +122,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6"  >
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6"  >
   <Card className={"shadow-lg rounded-2xl border"} >
           <Statistic
             title="Total Candidates"
@@ -136,6 +142,13 @@ const Dashboard = () => {
             title="Consultations"
             value={stats.consultations}
             prefix={<MessageCircle size={20} className="text-yellow-500" />}
+          />
+        </Card>
+          <Card className={"shadow-lg rounded-2xl border"} >
+          <Statistic
+            title="Total Contacts"
+            value={stats.contacts}
+            prefix={<PhoneCall size={20} className="text-blue-500" />}
           />
         </Card>
       </div>

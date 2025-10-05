@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Dropdown, Menu } from "antd";
-import { MoreVertical, Eye, Download, Check, X } from "lucide-react";
+import { MoreVertical, Eye, Download, Check, X, Trash } from "lucide-react";
 import axios from "axios";
 import ContactModal from "./components/ContactModal";
+import api from "../../../api";
+import { useAuth } from "../../context/AuthContext";
 // import ResumeDetailsModal from "./components/ResumeDetailsModal";
 
 const Contact = () => {
+
+
+  const {user} = useAuth()
+
   const [contactList, setContactList] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -22,7 +28,7 @@ const Contact = () => {
   // Fetch contacts from backend
   const getContacts = async () => {
     try {
-      const response = await axios.get("https://admin.oriventa-pro-service.com/api/contact/get-list" , { withCredentials: true });
+      const response = await api.get("/api/contact/get-list" , { withCredentials: true });
       setContactList(response.data);
     } catch (error) {
       console.error("Erreur de récupération des Contacts:", error);
@@ -35,13 +41,24 @@ const Contact = () => {
 
    const handleUpdateStatus = async (id, status) => {
       try {
-        await axios.patch(
-          `https://admin.oriventa-pro-service.com/api/contact/${id}`,
+        await api.patch(
+          `/api/contact/${id}`,
           { isViewed: status }
         );
         getContacts();
       } catch (error) {
         console.error("Erreur maj status:", error);
+      }
+    };
+
+    const handleDelete = async (id) => {
+      try {
+        if (window.confirm("Voulez-vous vraiment supprimer ce contact ?")){
+        await api.delete(`/api/contact/delete-contact/${id}` , { withCredentials: true });
+        getContacts();
+}
+      } catch (error) {
+        console.error("Error deleting contact:", error);
       }
     };
     
@@ -69,6 +86,15 @@ const Contact = () => {
           >
             Not Viewed
           </Menu.Item>
+          {user.role === "manager" && (
+                        <Menu.Item
+                          key="delete"
+                          icon={<Trash size={16} />}
+                          onClick={() => handleDelete(contact._id)}
+                        >
+                          Delete
+                        </Menu.Item>
+                      )}
         </Menu>
       );
 
@@ -92,49 +118,7 @@ const Contact = () => {
       <div className="overflow-x-auto rounded-lg shadow border border-gray-300 p-6 my-10">
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-4 mb-8">
-          <div className="flex items-center">
-            <label htmlFor="filter" className="mr-2">
-              Statut:
-            </label>
-            {/* <select
-              id="filterStatus"
-              className="border border-gray-300 rounded-md px-2 py-1"
-              onChange={(e) => setFilterStatus(e.target.value)}
-              value={filterStatus}
-            >
-              <option value="all">All</option>
-              <option value="approved">Approuvé</option>
-              <option value="pending">En attente</option>
-              <option value="rejected">Rejeté</option>
-            </select> */}
-          </div>
 
-          <div className="flex items-center">
-            <label htmlFor="search">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </label>
-            {/* <input
-              type="text"
-              id="search"
-              className="border w-full border-gray-300 rounded-md px-2 py-1 mx-2"
-              placeholder="Search by name ..."
-              onChange={(e) => setFilterFullName(e.target.value)}
-              value={filterFullName}
-            /> */}
-          </div>
         </div>
 
         {/* Table */}
