@@ -5,7 +5,7 @@ import Consultation from "../../models/Consultation.js"
 
 export const getConsultations = async (req, res) => {
     try {
-        const consultations = await Consultation.find().sort({ createdAt: -1 })
+        const consultations = await Consultation.find().sort({ createdAt: -1 }).populate('comment.writer' , 'name email role')
         return res.status(200).json(consultations)
     } catch (error) {
         return res.status(500).json({ message: "Error when try to get consultations" });

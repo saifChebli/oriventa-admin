@@ -5,8 +5,8 @@ import Resume from "../../models/Resume.js";
 
 export const getResumes = async (req,res) => {
     try {
-        const resumes = await Resume.find();
-        res.status(200).json(resumes).sort({ createdAt: -1 });
+        const resumes = await Resume.find().sort({ createdAt: -1 });
+        res.status(200).json(resumes)
 
     } catch (error) {
         res.status(500).json({ message: "Error when try to get resumes" });

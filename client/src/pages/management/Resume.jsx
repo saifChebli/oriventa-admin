@@ -1,22 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Dropdown, Menu } from "antd";
-import { MoreVertical, Eye, Download, Check, X, Trash } from "lucide-react";
-import axios from "axios";
+import { Dropdown, Menu, Pagination } from "antd";
+import { MoreVertical, Eye, Check, X, Trash } from "lucide-react";
 import api from "../../../api";
 import ResumeDetailsModal from "./components/ResumeDetailsModal";
 import { useAuth } from "../../context/AuthContext";
-// import ResumeDetailsModal from "./components/ResumeDetailsModal";
 
 const Resume = () => {
   const [resumeList, setResumeList] = useState([]);
+  const [filteredResumes, setFilteredResumes] = useState([]);
   const [selectedResume, setSelectedResume] = useState(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-  const {user} = useAuth()
+  const { user } = useAuth();
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  // Filters
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterFullName, setFilterFullName] = useState("");
+  const [date, setDate] = useState("");
+
   // Fetch resumes from backend
   const getResumes = async () => {
     try {
-      const response = await api.get("/api/creation" , { withCredentials: true });
+      const response = await api.get("/api/creation", { withCredentials: true });
       setResumeList(response.data);
+      setFilteredResumes(response.data);
     } catch (error) {
       console.error("Erreur de récupération des CV:", error);
     }
@@ -26,18 +36,29 @@ const Resume = () => {
     getResumes();
   }, []);
 
+  // Handle Delete
   const handleDelete = async (id) => {
     try {
       if (window.confirm("Voulez-vous vraiment supprimer ce CV ?")) {
-      await api.delete(`/api/creation/delete-resume/${id}`, { withCredentials: true });
-      getResumes();
+        await api.delete(`/api/creation/delete-resume/${id}`, { withCredentials: true });
+        getResumes();
       }
     } catch (error) {
       console.error("Erreur lors de la suppression du CV:", error);
     }
   };
 
-  // Open/close details modal
+  // Handle Status Update
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      await api.patch(`/api/creation/update-status/${id}`, { status });
+      getResumes();
+    } catch (error) {
+      console.error("Erreur maj status:", error);
+    }
+  };
+
+  // Handle Modal
   const openDetailsModal = (resume) => {
     setSelectedResume(resume);
     setDetailsModalOpen(true);
@@ -47,7 +68,36 @@ const Resume = () => {
     setDetailsModalOpen(false);
   };
 
-  // Status badge mapping
+  // Filter Logic
+  useEffect(() => {
+    let filtered = resumeList;
+
+    if (filterStatus !== "all") {
+      filtered = filtered.filter((resume) => resume.status === filterStatus);
+    }
+
+    if (filterFullName.trim() !== "") {
+      filtered = filtered.filter((resume) =>
+        resume.fullName?.toLowerCase().includes(filterFullName.toLowerCase())
+      );
+    }
+
+    if (date) {
+      filtered = filtered.filter(
+        (resume) =>
+          new Date(resume.createdAt).toISOString().split("T")[0] === date
+      );
+    }
+
+    setFilteredResumes(filtered);
+    setCurrentPage(1);
+  }, [filterStatus, filterFullName, resumeList , date]);
+
+  // Pagination logic
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentData = filteredResumes.slice(startIndex, startIndex + itemsPerPage);
+
+  // Status badge
   const getStatusBadge = (status) => {
     const statusConfig = {
       accepted: { color: "bg-green-100 text-green-700", label: "Approuvé" },
@@ -65,34 +115,10 @@ const Resume = () => {
     );
   };
 
-  // Actions
-  const handleUpdateStatus = async (id, status) => {
-    try {
-      await api.patch(
-        `/api/creation/update-status/${id}`,
-        { status }
-      );
-      getResumes();
-    } catch (error) {
-      console.error("Erreur maj status:", error);
-    }
-  };
-const handleDownload = (filename) => {
-  const url = `http://localhost:5000/api/creation/download/${filename}`;
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-};
+  // Dropdown menu
   const actionMenu = (resume) => (
     <Menu>
-      <Menu.Item
-        key="view"
-        icon={<Eye size={16} />}
-        onClick={() => openDetailsModal(resume)}
-      >
+      <Menu.Item key="view" icon={<Eye size={16} />} onClick={() => openDetailsModal(resume)}>
         Voir détails
       </Menu.Item>
       <Menu.Item
@@ -102,12 +128,6 @@ const handleDownload = (filename) => {
       >
         Approuver
       </Menu.Item>
-      {/* <Menu.Item
-        icon={<Download size={16} />}
-        onClick={() => handleDownload(resume.paymentReceipt)}
-      >
-        Télécharger
-      </Menu.Item> */}
       <Menu.Item
         key="reject"
         icon={<X size={16} />}
@@ -115,32 +135,13 @@ const handleDownload = (filename) => {
       >
         Rejeter
       </Menu.Item>
-       {user.role === "manager" && (
-              <Menu.Item
-                key="delete"
-                icon={<Trash size={16} />}
-                onClick={() => handleDelete(resume._id)}
-              >
-                Delete
-              </Menu.Item>
-            )}
+      {user?.role === "manager" && (
+        <Menu.Item key="delete" icon={<Trash size={16} />} onClick={() => handleDelete(resume._id)}>
+          Supprimer
+        </Menu.Item>
+      )}
     </Menu>
   );
-
-  // Filters
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterFullName, setFilterFullName] = useState("");
-
-  const filteredResumes = resumeList.filter((resume) => {
-    const statusMatches =
-      filterStatus === "all" || resume.status === filterStatus;
-    const nameMatches =
-      filterFullName === "" ||
-      (resume.fullName &&
-        resume.fullName.toLowerCase().includes(filterFullName.toLowerCase()));
-
-    return statusMatches && nameMatches;
-  });
 
   return (
     <div className="p-6">
@@ -151,111 +152,108 @@ const handleDownload = (filename) => {
 
       <div className="overflow-x-auto rounded-lg shadow border border-gray-300 p-6 my-10">
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-4 mb-8">
-          <div className="flex items-center">
-            <label htmlFor="filter" className="mr-2">
-              Statut:
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="flex flex-col items-start">
+            <label htmlFor="filterStatus" className="mr-2">
+              Statut :
             </label>
             <select
               id="filterStatus"
-              className="border border-gray-300 rounded-md px-2 py-1"
+              className="border border-gray-300 rounded-md px-2 py-1 w-full"
               onChange={(e) => setFilterStatus(e.target.value)}
               value={filterStatus}
             >
-              <option value="all">All</option>
-              <option value="approved">Approuvé</option>
+              <option value="all">Tous</option>
+              <option value="accepted">Approuvé</option>
               <option value="pending">En attente</option>
-              <option value="rejected">Rejeté</option>
+              <option value="refuse">Rejeté</option>
             </select>
           </div>
 
-          <div className="flex items-center">
-            <label htmlFor="search">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+          <div className="flex flex-col items-start col-span-2">
+            <label htmlFor="search" className="text-gray-600 mr-2">
+              Recherche :
             </label>
             <input
               type="text"
               id="search"
-              className="border w-full border-gray-300 rounded-md px-2 py-1 mx-2"
-              placeholder="Search by name ..."
+              className="border w-full border-gray-300 rounded-md px-3 py-1"
+              placeholder="Rechercher par nom ..."
               onChange={(e) => setFilterFullName(e.target.value)}
               value={filterFullName}
             />
           </div>
+          <div className="flex items-center col-span-2">
+            <input
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+             type="date"
+             name="" id="search" 
+             className="border w-full border-gray-300 rounded-md px-2 py-1 mx-2"
+              placeholder="Rechercher par date..." />
+          </div>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-lg shadow border border-gray-300 p-6">
+        <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Resume ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Nom complet
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Téléphone
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Statut
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Nom complet</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Téléphone</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Statut</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredResumes.map((resume) => (
-                <tr key={resume._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm">{resume._id}</td>
-                  <td className="px-6 py-4 text-sm">{resume.fullName}</td>
-                  <td className="px-6 py-4 text-sm">{resume.email}</td>
-                  <td className="px-6 py-4 text-sm">{resume.phone}</td>
-                  <td className="px-6 py-4 text-sm">
-                    {new Date(resume.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4">{getStatusBadge(resume.status)}</td>
-                  <td className="px-6 py-4">
-                    <Dropdown overlay={actionMenu(resume)} trigger={["click"]}>
-                      <button className="text-gray-600 hover:text-black">
-                        <MoreVertical size={18} />
-                      </button>
-                    </Dropdown>
+              {currentData.length > 0 ? (
+                currentData.map((resume) => (
+                  <tr key={resume._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm">{resume._id}</td>
+                    <td className="px-6 py-4 text-sm">{resume.fullName}</td>
+                    <td className="px-6 py-4 text-sm">{resume.email}</td>
+                    <td className="px-6 py-4 text-sm">{resume.phone}</td>
+                    <td className="px-6 py-4 text-sm">
+                      {new Date(resume.createdAt).toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" , hour: '2-digit', minute:'2-digit' })}
+                    </td>
+                    <td className="px-6 py-4">{getStatusBadge(resume.status)}</td>
+                    <td className="px-6 py-4">
+                      <Dropdown overlay={actionMenu(resume)} trigger={["click"]}>
+                        <button className="text-gray-600 hover:text-black">
+                          <MoreVertical size={18} />
+                        </button>
+                      </Dropdown>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="text-center py-6 text-gray-500">
+                    Aucun CV trouvé.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-center mt-6">
+          <Pagination
+            current={currentPage}
+            total={filteredResumes.length}
+            pageSize={itemsPerPage}
+            onChange={(page) => setCurrentPage(page)}
+            showSizeChanger={false}
+          />
         </div>
       </div>
 
       {/* Modal */}
-      <ResumeDetailsModal
-        open={detailsModalOpen}
-        onClose={closeDetailsModal}
-        resume={selectedResume}
-      />
+      <ResumeDetailsModal open={detailsModalOpen} onClose={closeDetailsModal} resume={selectedResume} />
     </div>
   );
 };

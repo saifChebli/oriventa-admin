@@ -68,9 +68,9 @@ const ResumeDetailsModal = ({ open, onClose, resume }) => {
                 {files.map((file) => (
                   <li key={file}>
                     {file}{" "}
-                    <Button size="small" onClick={() => handleDownload(file)}>
+                    {/* <Button size="small" onClick={() => handleDownload(file)}>
                       Télécharger
-                    </Button>
+                    </Button> */}
                   </li>
                 ))}
               </ul>

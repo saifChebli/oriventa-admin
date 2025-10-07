@@ -57,7 +57,7 @@ const CommentModal = ({ visible, onClose , consultation ,getBookings ,url }) => 
         consultation?.comment?.map((comment) => (
           <div key={comment._id} className="mb-4 border border-gray-300 rounded-md p-4">
             <p className='mb-2'>Content : {comment.text}</p>
-            <p className='mb-2'>Agent Name : {comment.writer}</p>
+            <p className='mb-2'>Agent Email : {comment.writer.email}</p>
             <p className='mb-2'>Date :{dayjs(comment.createdAt).format('YYYY-MM-DD HH:mm:ss')}</p>
           </div>
         ))
