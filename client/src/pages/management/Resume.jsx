@@ -77,8 +77,12 @@ const Resume = () => {
     }
 
     if (filterFullName.trim() !== "") {
+      const search = filterFullName.trim().toLowerCase();
       filtered = filtered.filter((resume) =>
-        resume.fullName?.toLowerCase().includes(filterFullName.toLowerCase())
+        resume.fullName?.toLowerCase().includes(search) ||
+        resume.phone?.toLowerCase().includes(search) ||
+        resume.address?.toLowerCase().includes(search) ||
+        resume.email?.toLowerCase().includes(search)
       );
     }
 

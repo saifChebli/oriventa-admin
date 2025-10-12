@@ -107,3 +107,46 @@ export const logout = async(req, res) => {
     }
     
 }
+
+export const updateAccount = async (req, res) => {
+  const id = req.user.id;
+  const { email, currentPassword, newPassword } = req.body;
+  try {
+    const user = await User.findById(id).select("+password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Only allow managers to update via this endpoint (per requirement)
+    if (user.role !== "manager") {
+      return res.status(403).json({ message: "Only managers can update their account via this endpoint" });
+    }
+
+    // Update email if provided and unique
+    if (email) {
+      const existing = await User.findOne({ email });
+      if (existing && existing.id !== id) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+      user.email = email;
+    }
+
+    // Update password flow
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: "Current password is required to change password" });
+      }
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+      user.password = newPassword; // will be hashed by pre-save hook
+    }
+
+    await user.save();
+    const userObj = user.toObject();
+    delete userObj.password;
+    return res.status(200).json(userObj);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error when try to update user" });
+  }
+};

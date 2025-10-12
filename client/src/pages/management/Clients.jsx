@@ -153,10 +153,12 @@ const Clients = () => {
   const filteredBookings = bookingList.filter((booking) => {
     let comment = booking.comment;
     const statusMatches = filterStatus === "all" || booking.status === filterStatus || (filterStatus === "comment" && comment && comment.length > 0);
+    const search = filterFullName.trim().toLowerCase();
     const nameMatches =
-      filterFullName === "" ||
-      (booking.fullName &&
-        booking.fullName.toLowerCase().includes(filterFullName.toLowerCase()));
+      search === "" ||
+      (booking.fullName && booking.fullName.toLowerCase().includes(search)) ||
+      (booking.phone && booking.phone.toLowerCase().includes(search)) ||
+      (booking.address && booking.address.toLowerCase().includes(search));
          const dateMatches =
       date === "" ||
       (booking.createdAt &&

@@ -58,8 +58,21 @@ const LoginForm = () => {
     );
     setIsLoading(false);
     toast.success("Signed in successfully");
-    login(response.data)
-    navigate("/");
+    // After successful login, fetch the full user object
+    try {
+      const me = await api.get('/api/auth/me', { withCredentials: true });
+      login(me.data);
+      // Navigate depending on role
+      if (me.data.role === 'client') {
+        navigate('/client-dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch (err) {
+      // fallback: use response.data if me endpoint fails
+      login(response.data);
+      navigate('/');
+    }
   } catch (error) {
     setIsLoading(false);
     if (error.response) {

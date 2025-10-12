@@ -12,12 +12,15 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
     );
   }
   console.log(allowedRoles)
-    if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />; // redirect if role not allowed
-  }
-
+  // If user is not authenticated, redirect to login first
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Then enforce role-based access
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    // Redirect to a safe default depending on role; default is root
+    return <Navigate to="/" replace />; // redirect if role not allowed
   }
 
   return <Outlet />;

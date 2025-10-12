@@ -179,10 +179,12 @@ const Candidates = () => {
         let comment = dossier.comment;
     const statusMatches = filterStatus === "all" || dossier.status === filterStatus || (filterStatus === "comment" && comment && comment.length > 0);
 
+    const search = filterFullName.trim().toLowerCase();
     const nameMatches =
-      filterFullName === "" ||
-      (dossier.fullName &&
-        dossier.fullName.toLowerCase().includes(filterFullName.toLowerCase()));
+      search === "" ||
+      (dossier.fullName && dossier.fullName.toLowerCase().includes(search)) ||
+      (dossier.phone && dossier.phone.toLowerCase().includes(search)) ||
+      (dossier.address && dossier.address.toLowerCase().includes(search));
     const dateMatches =
       date === "" ||
       (dossier.createdAt &&

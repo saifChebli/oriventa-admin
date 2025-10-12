@@ -28,7 +28,7 @@ const Routes = () => {
               <Route
                 element={
                   <ProtectedRoute
-                    allowedRoles={["manager", "admin", "customerService" , 'candidateService' , 'resumeService', 'client']}
+                    allowedRoles={["manager", "admin", "customerService" , 'candidateService' , 'resumeService']}
                   />
                 }
               >

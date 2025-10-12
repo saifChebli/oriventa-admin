@@ -181,7 +181,7 @@ const Settings = () => {
             <span>Update Password</span>
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -212,7 +212,26 @@ const Settings = () => {
         {/* Save Button */}
         <div className="mt-6 flex justify-end">
           <button
-            onClick={""}
+            onClick={async () => {
+              try {
+                setIsLoading(true);
+                const payload = { email: profile.email };
+                const response = await api.patch(
+                  "/api/auth/me",
+                  payload,
+                  { withCredentials: true }
+                );
+                if (response.status === 200) {
+                  toast.success("Profile updated successfully");
+                  setProfile(response.data);
+                }
+              } catch (error) {
+                console.error(error);
+                toast.error(error.response?.data?.message || "Error when try to update profile");
+              } finally {
+                setIsLoading(false);
+              }
+            }}
             className="bg-[#1E40AF] cursor-pointer text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
           >
             <span> {isLoading ? "Saving..." : "Save Changes"}</span>
@@ -280,7 +299,33 @@ const Settings = () => {
               Cancel
             </button>
             <button
-              onClick={""}
+              onClick={async () => {
+                if (!validateMatch(newPassword, confirmPassword)) {
+                  toast.error("Passwords do not match");
+                  return;
+                }
+                if (newPassword && newPassword.length < 6) {
+                  toast.error("Password must be at least 6 characters long");
+                  return;
+                }
+                try {
+                  setIsLoading(true);
+                  const payload = { currentPassword, newPassword };
+                  const response = await api.patch("/api/auth/me", payload, { withCredentials: true });
+                  if (response.status === 200) {
+                    toast.success("Password updated successfully");
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setTogglePassword(false);
+                  }
+                } catch (error) {
+                  console.error(error);
+                  toast.error(error.response?.data?.message || "Error when try to update password");
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
               className="bg-[#1E40AF] cursor-pointer text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
             >
               {isLoading ? "Updating..." : "Update Password"}
@@ -348,6 +393,14 @@ const Settings = () => {
                     >
                       View
                     </button>
+                    {user.role === 'client' && (
+                      <button
+                        onClick={() => handleOpenSuivi(user)}
+                        className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full hover:bg-purple-200 transition"
+                      >
+                        Suivi
+                      </button>
+                    )}
                   </>
                 ) : null}
               </div>
@@ -371,10 +424,38 @@ const Settings = () => {
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isSuiviModalOpen, setIsSuiviModalOpen] = useState(false);
+  const [suivi, setSuivi] = useState(null);
+  const [suiviLoading, setSuiviLoading] = useState(false);
+  const [cvFile, setCvFile] = useState(null);
+  const [lmFile, setLmFile] = useState(null);
 
   const handleViewUser = (user) => {
     setSelectedUser(user);
     setIsViewModalOpen(true);
+  };
+  const handleOpenSuivi = async (user) => {
+    setSelectedUser(user);
+    setIsSuiviModalOpen(true);
+    setSuiviLoading(true);
+    try {
+      const res = await api.get(`/api/suivi/${user._id}`, { withCredentials: true });
+      setSuivi(res.data);
+    } catch (e) {
+      // initialize defaults if not found
+      setSuivi({
+        user: user._id,
+        consultationValidated: false,
+        paymentReceived: false,
+        destination: '',
+        cvLetterCreated: false,
+        cvFile: '',
+        lmFile: '',
+        applicationNotes: ''
+      });
+    } finally {
+      setSuiviLoading(false);
+    }
   };
   const deleteUser = async (id) => {
     try {
@@ -527,6 +608,147 @@ const Settings = () => {
             </select>
           </div>
         </form>
+      </Modal>
+      <Modal
+        title="Update Client Suivi"
+        open={isSuiviModalOpen}
+        onCancel={() => { setIsSuiviModalOpen(false); setSuivi(null); setCvFile(null); setLmFile(null); }}
+        footer={null}
+      >
+        {suiviLoading ? (
+          <div className="py-10 text-center text-gray-500">Loading...</div>
+        ) : suivi ? (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+              <div>
+                <p className="font-medium">Consultation gratuite</p>
+                <p className="text-sm text-gray-500">Valider si la consultation est effectuée</p>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await api.patch(`/api/suivi/${selectedUser._id}`, { consultationValidated: true }, { withCredentials: true });
+                    setSuivi(res.data);
+                    toast.success('Consultation validée');
+                  } catch (e) { toast.error('Erreur de mise à jour'); }
+                }}
+                className={`px-3 py-1 rounded ${suivi.consultationValidated ? 'bg-green-100 text-green-800' : 'bg-blue-600 text-white'}`}
+                disabled={suivi.consultationValidated}
+              >
+                {suivi.consultationValidated ? 'Validé' : 'Valider'}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+              <div>
+                <p className="font-medium">Paiement reçu</p>
+                <p className="text-sm text-gray-500">Valider la réception du paiement</p>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await api.patch(`/api/suivi/${selectedUser._id}`, { paymentReceived: true }, { withCredentials: true });
+                    setSuivi(res.data);
+                    toast.success('Paiement validé');
+                  } catch (e) { toast.error('Erreur de mise à jour'); }
+                }}
+                className={`px-3 py-1 rounded ${suivi.paymentReceived ? 'bg-green-100 text-green-800' : 'bg-blue-600 text-white'}`}
+                disabled={suivi.paymentReceived}
+              >
+                {suivi.paymentReceived ? 'Validé' : 'Valider'}
+              </button>
+            </div>
+
+            <div className="p-3 bg-gray-50 rounded">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={suivi.destination || ''}
+                  onChange={(e) => setSuivi({ ...suivi, destination: e.target.value })}
+                  className="flex-1 border border-gray-300 rounded px-3 py-2"
+                />
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await api.patch(`/api/suivi/${selectedUser._id}`, { destination: suivi.destination }, { withCredentials: true });
+                      setSuivi(res.data);
+                      toast.success('Destination mise à jour');
+                    } catch (e) { toast.error('Erreur de mise à jour'); }
+                  }}
+                  className="px-3 py-2 bg-blue-600 text-white rounded"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+
+            <div className="p-3 bg-gray-50 rounded space-y-2">
+              <p className="font-medium">Création CV et Lettre</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-700">CV (PDF)</label>
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setCvFile(e.target.files?.[0] || null)} className="block w-full" />
+                  {suivi.cvFile && (
+                    <a href={suivi.cvFile} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline">Télécharger CV</a>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700">Lettre de motivation</label>
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setLmFile(e.target.files?.[0] || null)} className="block w-full" />
+                  {suivi.lmFile && (
+                    <a href={suivi.lmFile} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline">Télécharger LM</a>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const form = new FormData();
+                    form.append('cvLetterCreated', 'true');
+                    if (cvFile) form.append('cvFile', cvFile);
+                    if (lmFile) form.append('lmFile', lmFile);
+                    const res = await api.patch(`/api/suivi/${selectedUser._id}`, form, {
+                      withCredentials: true,
+                      headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    setSuivi(res.data);
+                    toast.success('CV/LM mis à jour');
+                  } catch (e) { toast.error("Erreur lors de l'upload"); }
+                }}
+                className={`px-3 py-2 ${suivi.cvLetterCreated ? 'bg-green-100 text-green-800' : 'bg-blue-600 text-white'} rounded`}
+              >
+                {suivi.cvLetterCreated ? 'Validé' : 'Valider et téléverser'}
+              </button>
+            </div>
+
+            <div className="p-3 bg-gray-50 rounded">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Postulation</label>
+              <textarea
+                rows={3}
+                value={suivi.applicationNotes || ''}
+                onChange={(e) => setSuivi({ ...suivi, applicationNotes: e.target.value })}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await api.patch(`/api/suivi/${selectedUser._id}`, { applicationNotes: suivi.applicationNotes }, { withCredentials: true });
+                      setSuivi(res.data);
+                      toast.success('Postulation mise à jour');
+                    } catch (e) { toast.error('Erreur de mise à jour'); }
+                  }}
+                  className="px-3 py-2 bg-blue-600 text-white rounded"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="py-10 text-center text-gray-500">No data</div>
+        )}
       </Modal>
 
       <Modal

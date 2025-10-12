@@ -10,15 +10,20 @@ const statusColors = {
 const ResumeDetailsModal = ({ open, onClose, resume }) => {
   if (!resume) return null;
 
-  const handleDownload = (file) => {
-    const url = `http://localhost:8000/api/clients/download/${file}`;
+ 
+ const handleDownload = async (resumeId) => {
+  try {
+    const url = `http://localhost:5000/api/creation/download-by-id/${resumeId}`;
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", file);
+    link.setAttribute("download", `${resumeId}.pdf`);
     document.body.appendChild(link);
     link.click();
-    link.remove();
-  };
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Download error:", error);
+  }
+};
 
   return (
     <Modal
@@ -80,7 +85,7 @@ const ResumeDetailsModal = ({ open, onClose, resume }) => {
 
         <Descriptions.Item label="Reçu de Paiement">
           {resume.paymentReceipt ? (
-            <Button onClick={() => handleDownload(resume.paymentReceipt)}>Télécharger le reçu</Button>
+            <Button onClick={() => handleDownload(resume._id)}>Télécharger le reçu</Button>
           ) : (
             "N/A"
           )}
