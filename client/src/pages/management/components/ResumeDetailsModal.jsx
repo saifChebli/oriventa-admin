@@ -13,7 +13,7 @@ const ResumeDetailsModal = ({ open, onClose, resume }) => {
  
  const handleDownload = async (resumeId) => {
   try {
-    const url = `http://localhost:5000/api/creation/download-by-id/${resumeId}`;
+    const url = `https://admin.oriventa-pro-service.com/api/creation/download-by-id/${resumeId}`;
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `${resumeId}.pdf`);

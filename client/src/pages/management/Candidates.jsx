@@ -96,7 +96,7 @@ const Candidates = () => {
   };
 
   const handleDownload = (dossierNumber, fullName) => {
-    const url = `http://localhost:5000/api/dossiers/download-folder/${dossierNumber}/${fullName}`;
+    const url = `https://admin.oriventa-pro-service.com/api/dossiers/download-folder/${dossierNumber}/${fullName}`;
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `${dossierNumber}_${fullName}.zip`);
