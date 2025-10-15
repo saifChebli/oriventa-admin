@@ -28,13 +28,19 @@ export const upsertSuivi = async (req, res) => {
     const { userId } = req.params;
     const update = req.body;
 
+    console.log('Updating suivi for user:', userId);
+    console.log('Request body:', update);
+    console.log('Files received:', req.files);
+
     // If files are uploaded for cv/lm, set their paths
     if (req.files) {
-      if (req.files.cvFile?.[0]) {
+      if (req.files.cvFile && req.files.cvFile[0]) {
         update.cvFile = `/uploads/suivi/${req.files.cvFile[0].filename}`;
+        console.log('CV file path:', update.cvFile);
       }
-      if (req.files.lmFile?.[0]) {
+      if (req.files.lmFile && req.files.lmFile[0]) {
         update.lmFile = `/uploads/suivi/${req.files.lmFile[0].filename}`;
+        console.log('LM file path:', update.lmFile);
       }
     }
 
@@ -43,9 +49,11 @@ export const upsertSuivi = async (req, res) => {
       { $set: update },
       { new: true, upsert: true }
     );
+    
+    console.log('Suivi updated successfully:', result);
     res.status(200).json(result);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error updating suivi' });
+    console.error('Error updating suivi:', error);
+    res.status(500).json({ message: 'Error updating suivi', error: error.message });
   }
 };

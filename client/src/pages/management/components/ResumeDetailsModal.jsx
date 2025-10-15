@@ -1,5 +1,6 @@
 import { Modal, Descriptions, Tag, Button } from "antd";
 import dayjs from "dayjs";
+import api from "../../../../api";
 
 const statusColors = {
   pending: "orange",
@@ -13,7 +14,7 @@ const ResumeDetailsModal = ({ open, onClose, resume }) => {
  
  const handleDownload = async (resumeId) => {
   try {
-    const url = `https://admin.oriventa-pro-service.com/api/creation/download-by-id/${resumeId}`;
+    const url = `${api.defaults.baseURL}/api/creation/download-by-id/${resumeId}`;
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `${resumeId}.pdf`);

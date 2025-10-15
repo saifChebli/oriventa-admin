@@ -95,7 +95,15 @@ export const addComment = async (req, res) => {
 export const downloadFolder = async (req, res) => {
   try {
     const { dossierNumber, fullName } = req.params;
-    const folderPath = path.join("uploads", `${dossierNumber}_${fullName}`);
+
+    // Decode and sanitize fullName to match folder naming convention used on upload
+    const rawFullName = decodeURIComponent(fullName || "");
+    const safeFullName = rawFullName
+      .replace(/[\\/]/g, "_")      // prevent path traversal
+      .replace(/\s+/g, "_")         // spaces to underscores (matches addCandidate)
+      .trim();
+
+    const folderPath = path.join("uploads", `${dossierNumber}_${safeFullName}`);
 
     // Check folder existence
     if (!fs.existsSync(folderPath)) {
@@ -103,14 +111,22 @@ export const downloadFolder = async (req, res) => {
     }
 
     // ZIP filename
-    const zipFileName = `${dossierNumber}_${fullName}.zip`;
+    const zipFileName = `${dossierNumber}_${safeFullName}.zip`;
 
     // Set response headers
-    res.setHeader("Content-Disposition", `attachment; filename=${zipFileName}`);
+    res.setHeader("Content-Disposition", `attachment; filename="${zipFileName}"`);
     res.setHeader("Content-Type", "application/zip");
 
     // Create archive and pipe to response
     const archive = archiver("zip", { zlib: { level: 9 } });
+    archive.on('error', (err) => {
+      console.error('Archive error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: 'Error generating ZIP file' });
+      } else {
+        res.end();
+      }
+    });
     archive.pipe(res);
 
     // Add entire folder

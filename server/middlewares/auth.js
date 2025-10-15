@@ -22,7 +22,7 @@ export const checkRole = (req, res, next) => {
             if (err) {
                 return res.status(403).json("Token is not valid!");
             }
-            if (user.role !== "admin" && user.role !== "manager") {
+            if (user.role !== "admin" && user.role !== "manager" && user.role !== "candidateService") {
                 return res.status(403).json("You are not authorized!");
             }
             req.user = user;

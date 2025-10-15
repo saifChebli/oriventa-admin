@@ -1,10 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, FileText, Download } from 'lucide-react';
 import api from '../../../api';
+import { toast } from 'react-hot-toast';
 
 const ClientSuivi = () => {
   const [suivi, setSuivi] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to handle file downloads
+  const handleDownload = async (filePath, fileName) => {
+    try {
+      const fullUrl = `${api.defaults.baseURL}${filePath}`;
+      
+      // First, check if the file exists
+      const response = await fetch(fullUrl, { method: 'HEAD' });
+      
+      if (!response.ok) {
+        toast.error('Le fichier n\'existe pas ou n\'est pas accessible');
+        return;
+      }
+
+      // If file exists, trigger download
+      const link = document.createElement('a');
+      link.href = fullUrl;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(`Téléchargement de ${fileName}...`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Erreur lors du téléchargement du fichier');
+    }
+  };
 
   useEffect(() => {
     const fetchSuivi = async () => {
@@ -70,18 +101,28 @@ const ClientSuivi = () => {
               {suivi?.cvLetterCreated ? 'Validé' : 'En attente'}
             </span>
           </div>
-          <div className="flex gap-4 mt-3">
-            {suivi?.cvFile && (
-              <a href={suivi.cvFile} target="_blank" rel="noreferrer" className="inline-flex items-center text-blue-600 underline">
-                <Download className="h-4 w-4 mr-1" /> Télécharger CV
-              </a>
-            )}
-            {suivi?.lmFile && (
-              <a href={suivi.lmFile} target="_blank" rel="noreferrer" className="inline-flex items-center text-blue-600 underline">
-                <Download className="h-4 w-4 mr-1" /> Télécharger LM
-              </a>
-            )}
-          </div>
+          {(suivi?.cvFile || suivi?.lmFile) ? (
+            <div className="flex gap-4 mt-3">
+              {suivi?.cvFile && (
+                <button
+                  onClick={() => handleDownload(suivi.cvFile, 'CV.pdf')}
+                  className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                >
+                  <Download className="h-4 w-4 mr-1" /> Télécharger CV
+                </button>
+              )}
+              {suivi?.lmFile && (
+                <button
+                  onClick={() => handleDownload(suivi.lmFile, 'Lettre_de_Motivation.pdf')}
+                  className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                >
+                  <Download className="h-4 w-4 mr-1" /> Télécharger LM
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 mt-2">Aucun document disponible</p>
+          )}
         </div>
 
         {/* 5. Postulation */}

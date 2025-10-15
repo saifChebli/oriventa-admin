@@ -146,7 +146,7 @@ const Settings = () => {
 
   const tabs = [
     { id: "general", label: "General", icon: "Settings" },
-    ...(profile.role === "admin" || profile.role === "manager"
+    ...(profile.role === "admin" || profile.role === "manager" || profile.role === "candidateService"
       ? [{ id: "users", label: "Users & Permissions", icon: "Users" }]
       : []),
   ];
@@ -173,13 +173,15 @@ const Settings = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Personal Information
           </h3>
-          <button
-            onClick={() => setTogglePassword(true)}
-            className=" bg-gray-200 cursor-pointer text-gray-600 px-4 py-2 mx-4 rounded-md hover:bg-gray-300 transition-colors duration-200 flex items-center space-x-2"
-          >
-            <UserPen />
-            <span>Update Password</span>
-          </button>
+          {(profile.role === "admin" || profile.role === "manager") && (
+            <button
+              onClick={() => setTogglePassword(true)}
+              className=" bg-gray-200 cursor-pointer text-gray-600 px-4 py-2 mx-4 rounded-md hover:bg-gray-300 transition-colors duration-200 flex items-center space-x-2"
+            >
+              <UserPen />
+              <span>Update Password</span>
+            </button>
+          )}
         </div>
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -191,7 +193,8 @@ const Settings = () => {
               name="email"
               onChange={handleInputChange}
               value={profile.email}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={profile.role === "candidateService"}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${profile.role === "candidateService" ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             />
           </div>
           <div>
@@ -204,42 +207,52 @@ const Settings = () => {
                 name="role"
                 disabled
                 defaultValue={profile.role}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100"
               />
             </div>
           </div>
         </div>
         {/* Save Button */}
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={async () => {
-              try {
-                setIsLoading(true);
-                const payload = { email: profile.email };
-                const response = await api.patch(
-                  "/api/auth/me",
-                  payload,
-                  { withCredentials: true }
-                );
-                if (response.status === 200) {
-                  toast.success("Profile updated successfully");
-                  setProfile(response.data);
+        {(profile.role === "admin" || profile.role === "manager") && (
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={async () => {
+                try {
+                  setIsLoading(true);
+                  const payload = { email: profile.email };
+                  const response = await api.patch(
+                    "/api/auth/me",
+                    payload,
+                    { withCredentials: true }
+                  );
+                  if (response.status === 200) {
+                    toast.success("Profile updated successfully");
+                    setProfile(response.data);
+                  }
+                } catch (error) {
+                  console.error(error);
+                  toast.error(error.response?.data?.message || "Error when try to update profile");
+                } finally {
+                  setIsLoading(false);
                 }
-              } catch (error) {
-                console.error(error);
-                toast.error(error.response?.data?.message || "Error when try to update profile");
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-            className="bg-[#1E40AF] cursor-pointer text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
-          >
-            <span> {isLoading ? "Saving..." : "Save Changes"}</span>
-          </button>
-        </div>
+              }}
+              className="bg-[#1E40AF] cursor-pointer text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
+            >
+              <span> {isLoading ? "Saving..." : "Save Changes"}</span>
+            </button>
+          </div>
+        )}
+        {profile.role === "candidateService" && (
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm text-yellow-800">
+              En tant que candidateService, vous ne pouvez pas modifier vos informations personnelles. 
+              Contactez un administrateur pour toute modification nécessaire.
+            </p>
+          </div>
+        )}
       </div>
       {/* Update Password */}
-      {togglePassword && (
+      {togglePassword && (profile.role === "admin" || profile.role === "manager") && (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -364,12 +377,14 @@ const Settings = () => {
             <option value="clients">Clients</option>
           </select>
           </div>
-          <button
-            onClick={showModal}
-            className="bg-[#1E40AF] cursor-pointer text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
-          >
-            <span>Add User</span>
-          </button>
+          {(profile.role === "admin" || profile.role === "manager") && (
+            <button
+              onClick={showModal}
+              className="bg-[#1E40AF] cursor-pointer text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
+            >
+              <span>Add User</span>
+            </button>
+          )}
         </div>
         <div className="space-y-3">
           {filteredUsers?.map((user) => (
@@ -387,12 +402,14 @@ const Settings = () => {
                 </span>
                 {user.role !== "manager" ? (
                   <>
-                    <button
-                      onClick={() => handleViewUser(user)}
-                      className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full hover:bg-blue-200 transition"
-                    >
-                      View
-                    </button>
+                    {(profile.role === "admin" || profile.role === "manager") && (
+                      <button
+                        onClick={() => handleViewUser(user)}
+                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full hover:bg-blue-200 transition"
+                      >
+                        View
+                      </button>
+                    )}
                     {user.role === 'client' && (
                       <button
                         onClick={() => handleOpenSuivi(user)}
@@ -622,40 +639,40 @@ const Settings = () => {
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
               <div>
                 <p className="font-medium">Consultation gratuite</p>
-                <p className="text-sm text-gray-500">Valider si la consultation est effectuée</p>
+                <p className="text-sm text-gray-500">Valider ou annuler la consultation</p>
               </div>
               <button
                 onClick={async () => {
                   try {
-                    const res = await api.patch(`/api/suivi/${selectedUser._id}`, { consultationValidated: true }, { withCredentials: true });
+                    const newValue = !suivi.consultationValidated;
+                    const res = await api.patch(`/api/suivi/${selectedUser._id}`, { consultationValidated: newValue }, { withCredentials: true });
                     setSuivi(res.data);
-                    toast.success('Consultation validée');
+                    toast.success(newValue ? 'Consultation validée' : 'Consultation annulée');
                   } catch (e) { toast.error('Erreur de mise à jour'); }
                 }}
-                className={`px-3 py-1 rounded ${suivi.consultationValidated ? 'bg-green-100 text-green-800' : 'bg-blue-600 text-white'}`}
-                disabled={suivi.consultationValidated}
+                className={`px-3 py-1 rounded ${suivi.consultationValidated ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-white hover:bg-gray-500'}`}
               >
-                {suivi.consultationValidated ? 'Validé' : 'Valider'}
+                {suivi.consultationValidated ? 'Validé ✓' : 'Non validé'}
               </button>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
               <div>
                 <p className="font-medium">Paiement reçu</p>
-                <p className="text-sm text-gray-500">Valider la réception du paiement</p>
+                <p className="text-sm text-gray-500">Valider ou annuler la réception du paiement</p>
               </div>
               <button
                 onClick={async () => {
                   try {
-                    const res = await api.patch(`/api/suivi/${selectedUser._id}`, { paymentReceived: true }, { withCredentials: true });
+                    const newValue = !suivi.paymentReceived;
+                    const res = await api.patch(`/api/suivi/${selectedUser._id}`, { paymentReceived: newValue }, { withCredentials: true });
                     setSuivi(res.data);
-                    toast.success('Paiement validé');
+                    toast.success(newValue ? 'Paiement validé' : 'Paiement annulé');
                   } catch (e) { toast.error('Erreur de mise à jour'); }
                 }}
-                className={`px-3 py-1 rounded ${suivi.paymentReceived ? 'bg-green-100 text-green-800' : 'bg-blue-600 text-white'}`}
-                disabled={suivi.paymentReceived}
+                className={`px-3 py-1 rounded ${suivi.paymentReceived ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-white hover:bg-gray-500'}`}
               >
-                {suivi.paymentReceived ? 'Validé' : 'Valider'}
+                {suivi.paymentReceived ? 'Validé ✓' : 'Non validé'}
               </button>
             </div>
 
@@ -684,42 +701,81 @@ const Settings = () => {
             </div>
 
             <div className="p-3 bg-gray-50 rounded space-y-2">
-              <p className="font-medium">Création CV et Lettre</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-medium">Création CV et Lettre</p>
+                <button
+                  onClick={async () => {
+                    try {
+                      const newValue = !suivi.cvLetterCreated;
+                      const res = await api.patch(`/api/suivi/${selectedUser._id}`, { cvLetterCreated: newValue }, { withCredentials: true });
+                      setSuivi(res.data);
+                      toast.success(newValue ? 'Statut validé' : 'Statut annulé');
+                    } catch (e) { toast.error('Erreur de mise à jour'); }
+                  }}
+                  className={`px-3 py-1 rounded text-sm ${suivi.cvLetterCreated ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-white hover:bg-gray-500'}`}
+                >
+                  {suivi.cvLetterCreated ? 'Validé ✓' : 'Non validé'}
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm text-gray-700">CV (PDF)</label>
-                  <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setCvFile(e.target.files?.[0] || null)} className="block w-full" />
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setCvFile(e.target.files?.[0] || null)} className="block w-full text-sm" />
                   {suivi.cvFile && (
-                    <a href={suivi.cvFile} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline">Télécharger CV</a>
+                    <a href={`${api.defaults.baseURL}${suivi.cvFile}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800">
+                      Télécharger CV actuel
+                    </a>
                   )}
                 </div>
                 <div>
                   <label className="text-sm text-gray-700">Lettre de motivation</label>
-                  <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setLmFile(e.target.files?.[0] || null)} className="block w-full" />
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setLmFile(e.target.files?.[0] || null)} className="block w-full text-sm" />
                   {suivi.lmFile && (
-                    <a href={suivi.lmFile} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline">Télécharger LM</a>
+                    <a href={`${api.defaults.baseURL}${suivi.lmFile}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800">
+                      Télécharger LM actuelle
+                    </a>
                   )}
                 </div>
               </div>
-              <button
-                onClick={async () => {
-                  try {
-                    const form = new FormData();
-                    form.append('cvLetterCreated', 'true');
-                    if (cvFile) form.append('cvFile', cvFile);
-                    if (lmFile) form.append('lmFile', lmFile);
-                    const res = await api.patch(`/api/suivi/${selectedUser._id}`, form, {
-                      withCredentials: true,
-                      headers: { 'Content-Type': 'multipart/form-data' }
-                    });
-                    setSuivi(res.data);
-                    toast.success('CV/LM mis à jour');
-                  } catch (e) { toast.error("Erreur lors de l'upload"); }
-                }}
-                className={`px-3 py-2 ${suivi.cvLetterCreated ? 'bg-green-100 text-green-800' : 'bg-blue-600 text-white'} rounded`}
-              >
-                {suivi.cvLetterCreated ? 'Validé' : 'Valider et téléverser'}
-              </button>
+              {(cvFile || lmFile) && (
+                <button
+                  onClick={async () => {
+                    try {
+                      setSuiviLoading(true);
+                      const form = new FormData();
+                      if (cvFile) {
+                        console.log('Uploading CV file:', cvFile.name, 'Size:', cvFile.size);
+                        form.append('cvFile', cvFile);
+                      }
+                      if (lmFile) {
+                        console.log('Uploading LM file:', lmFile.name, 'Size:', lmFile.size);
+                        form.append('lmFile', lmFile);
+                      }
+                      
+                      const res = await api.patch(`/api/suivi/${selectedUser._id}`, form, {
+                        withCredentials: true,
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                      });
+                      
+                      setSuivi(res.data);
+                      setCvFile(null);
+                      setLmFile(null);
+                      // Reset file inputs
+                      document.querySelectorAll('input[type="file"]').forEach(input => input.value = '');
+                      toast.success('Fichiers téléversés avec succès');
+                    } catch (e) { 
+                      console.error('Upload error:', e);
+                      toast.error(e.response?.data?.message || "Erreur lors de l'upload"); 
+                    } finally {
+                      setSuiviLoading(false);
+                    }
+                  }}
+                  disabled={suiviLoading}
+                  className="w-full px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {suiviLoading ? 'Téléversement...' : 'Téléverser les fichiers'}
+                </button>
+              )}
             </div>
 
             <div className="p-3 bg-gray-50 rounded">

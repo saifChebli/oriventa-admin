@@ -95,14 +95,33 @@ const Candidates = () => {
     }
   };
 
-  const handleDownload = (dossierNumber, fullName) => {
-    const url = `https://admin.oriventa-pro-service.com/api/dossiers/download-folder/${dossierNumber}/${fullName}`;
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `${dossierNumber}_${fullName}.zip`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  const handleDownload = async (dossierNumber, fullName) => {
+    try {
+      // Ensure consistency with server: replace spaces with underscores
+      const safeFullName = (fullName || "").replace(/\s+/g, "_");
+      const encodedName = encodeURIComponent(safeFullName);
+      const url = `${api.defaults.baseURL}/api/dossiers/download-folder/${encodeURIComponent(dossierNumber)}/${encodedName}`;
+
+      // Optional HEAD check to surface clearer errors
+      const headResp = await fetch(url, { method: 'HEAD' });
+      if (!headResp.ok) {
+        const msg = headResp.status === 404 ? 'Dossier introuvable à télécharger' : 'Erreur lors de la préparation du téléchargement';
+        console.error('Download check failed:', headResp.status, headResp.statusText);
+        // Use alert to avoid adding extra deps; replace with toast if available
+        window.alert(msg);
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${dossierNumber}_${safeFullName}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Erreur de téléchargement du dossier:', err);
+      window.alert('Erreur de téléchargement. Veuillez réessayer.');
+    }
   };
 
   const handleDelete = async (id) => {
