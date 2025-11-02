@@ -47,7 +47,10 @@ router.get('/me', verifyToken, getSuiviForClient);
 
 // Manager/Admin: get & update a client's suivi
 router.get('/:userId', verifyToken, checkRole, getSuiviForUser);
-router.patch('/:userId', verifyToken, checkRole, upload.fields([{ name: 'cvFile', maxCount: 1 }, { name: 'lmFile', maxCount: 1 }]), upsertSuivi);
+router.patch('/:userId', verifyToken, checkRole, upload.fields([
+  { name: 'cvFile', maxCount: 10 },
+  { name: 'lmFile', maxCount: 10 }
+]), upsertSuivi);
 
 // Error handling middleware for multer
 router.use((error, req, res, next) => {

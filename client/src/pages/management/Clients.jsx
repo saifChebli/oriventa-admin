@@ -25,6 +25,7 @@ const Clients = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterFullName, setfilterFullName] = useState("");
   const [date, setDate] = useState("");
+  // Simplified view: essential columns only; open details for more
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,6 +40,7 @@ const Clients = () => {
     }
   };
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
   useEffect(() => {
     getBookings();
   }, []);
@@ -225,45 +227,32 @@ const Clients = () => {
              className="border w-full border-gray-300 rounded-md px-2 py-1 mx-2"
               placeholder="Rechercher par date..." />
           </div>
+          
         </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg shadow border border-gray-300">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
+      <div className="rounded-lg overflow-hidden shadow border border-gray-300">
+        <table className="w-full divide-y divide-gray-200 text-sm table-auto">
           <thead className="bg-gray-50">
             <tr>
-              {[
-                // "ID",
-                "Nom complet",
-                "Téléphone",
-                "Adresse",
-                "Domaine",
-                "Date",
-                "Statut",
-                "Actions",
-              ].map((header) => (
-                <th
-                  key={header}
-                  className="px-4 sm:px-6 py-3 text-left font-medium uppercase tracking-wider text-xs text-gray-700"
-                >
-                  {header}
-                </th>
-              ))}
+              <th className="px-4 sm:px-6 py-3 text-left font-semibold uppercase tracking-wider text-xs text-gray-700">Nom complet</th>
+              <th className="px-4 sm:px-6 py-3 text-left font-semibold uppercase tracking-wider text-xs text-gray-700">Téléphone</th>
+              <th className="px-4 sm:px-6 py-3 text-left font-semibold uppercase tracking-wider text-xs text-gray-700">Domaine</th>
+              <th className="px-4 sm:px-6 py-3 text-left font-semibold uppercase tracking-wider text-xs text-gray-700">Date</th>
+              <th className="px-4 sm:px-6 py-3 text-left font-semibold uppercase tracking-wider text-xs text-gray-700">Statut</th>
+              <th className="px-4 sm:px-6 py-3 text-left font-semibold uppercase tracking-wider text-xs text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {paginatedBookings.length > 0 ? (
               paginatedBookings.map((booking) => (
-                <tr key={booking._id} className="hover:bg-gray-50">
+                <tr key={booking._id} className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
                   {/* <td className="px-4 sm:px-6 py-3 break-all">{booking._id}</td> */}
                   <td className="px-4 sm:px-6 py-3">
                     {booking.fullName || "Inconnu"}
                   </td>
                   <td className="px-4 sm:px-6 py-3">{booking.phone}</td>
-                  <td className="px-4 sm:px-6 py-3 whitespace-pre-wrap">
-                    {booking.address}
-                  </td>
                   <td className="px-4 sm:px-6 py-3">{booking.jobDomain}</td>
                   <td className="px-4 sm:px-6 py-3">
                     {new Date(booking.createdAt).toLocaleDateString("fr-FR", {

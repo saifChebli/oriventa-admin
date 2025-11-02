@@ -32,6 +32,8 @@ const Candidates = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterFullName, setFilterFullName] = useState("");
   const [date, setDate] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  // Simplified view: show only essential columns; details in modal
   const getDossiers = async () => {
     try {
       const response = await api.get("/api/dossiers");
@@ -229,7 +231,7 @@ const Candidates = () => {
       </div>
 
       {/* Filters */}
-      <div className="overflow-x-auto rounded-lg shadow border border-gray-300 p-6 my-10 bg-white">
+  <div className="rounded-lg shadow border border-gray-300 p-6 my-10 bg-white">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="flex items-center">
             <label htmlFor="filter" className="mr-2 font-medium text-sm">
@@ -284,47 +286,90 @@ const Candidates = () => {
              className="border w-full border-gray-300 rounded-md px-2 py-1 mx-2"
               placeholder="Rechercher par date..." />
           </div>
+          
+          {/* Advanced columns toggle */}
+          <div className="flex items-center col-span-1">
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" checked={showAdvanced} onChange={(e) => setShowAdvanced(e.target.checked)} />
+              Afficher colonnes avancées
+            </label>
+          </div>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse min-w-[800px]">
+        <div className={`rounded-lg overflow-hidden border border-gray-200 ${showAdvanced ? 'overflow-x-auto' : ''}`}>
+          <table className={`w-full border-collapse ${showAdvanced ? 'min-w-[1000px]' : ''} table-auto`}>
             <thead className="bg-gray-50">
               <tr>
-                {[
-                  "Dossier ID",
-                  "Nom complet",
-                  "Téléphone",
-                  "Adresse",
-                  "Date",
-                  "Statut",
-                  "Actions",
-                ].map((header) => (
-                  <th
-                    key={header}
-                    className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-600"
-                  >
-                    {header}
-                  </th>
-                ))}
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Dossier ID</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Nom complet</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Téléphone</th>
+                {showAdvanced && (
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Adresse</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Naissance</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Métier</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">A un CV</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Langues</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Diplômes</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Stages</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Associations</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Compétences</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Remarques</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Pièces</th>
+                  </>
+                )}
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Statut</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {paginatedDossiers.length > 0 ? (
                 paginatedDossiers.map((dossier) => (
-                  <tr
-                    key={dossier._id}
-                    className="hover:bg-gray-50 transition-all"
-                  >
-                    <td className="px-6 py-4 text-sm">
+                  <tr key={dossier._id} className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <td className="px-6 py-3 text-sm whitespace-nowrap">
                       {dossier.dossierNumber}
                     </td>
-                    <td className="px-6 py-4 text-sm">{dossier.fullName}</td>
-                    <td className="px-6 py-4 text-sm">{dossier.phone}</td>
-                    <td className="px-6 py-4 text-sm whitespace-wrap">
-                      {dossier.address}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
+                    <td className="px-6 py-3 text-sm truncate max-w-[220px]" title={dossier.fullName || ''}>{dossier.fullName}</td>
+                    <td className="px-6 py-3 text-sm truncate max-w-[220px]" title={dossier.email || ''}>{dossier.email}</td>
+                    <td className="px-6 py-3 text-sm whitespace-nowrap">{dossier.phone}</td>
+                    {showAdvanced && (
+                      <>
+                        <td className="px-6 py-3 text-sm truncate max-w-[260px]" title={dossier.address || ''}>{dossier.address}</td>
+                        <td className="px-6 py-3 text-sm">{dossier.birthDate ? new Date(dossier.birthDate).toLocaleDateString('fr-FR') : '-'}</td>
+                        <td className="px-6 py-3 text-sm">{dossier.jobType || '-'}</td>
+                        <td className="px-6 py-3 text-sm">{dossier.hasCV || '-'}</td>
+                        <td className="px-6 py-3 text-sm truncate max-w-[200px]" title={dossier.languages || ''}>{dossier.languages || '-'}</td>
+                        <td className="px-6 py-3 text-sm truncate max-w-[200px]" title={dossier.diplomas || ''}>{dossier.diplomas || '-'}</td>
+                        <td className="px-6 py-3 text-sm truncate max-w-[200px]" title={dossier.stages || ''}>{dossier.stages || '-'}</td>
+                        <td className="px-6 py-3 text-sm truncate max-w-[200px]" title={dossier.associations || ''}>{dossier.associations || '-'}</td>
+                        <td className="px-6 py-3 text-sm truncate max-w-[200px]" title={dossier.skills || ''}>{dossier.skills || '-'}</td>
+                        <td className="px-6 py-3 text-sm truncate max-w-[240px]" title={dossier.remarks || ''}>{dossier.remarks ? (dossier.remarks.length > 40 ? `${dossier.remarks.slice(0,40)}...` : dossier.remarks) : '-'}</td>
+                        <td className="px-6 py-3 text-sm space-x-2 whitespace-nowrap">
+                          {dossier.cvFile && (
+                            <a className="text-blue-600 underline" href={`${api.defaults.baseURL}${dossier.cvFile}`} target="_blank" rel="noreferrer">CV</a>
+                          )}
+                          {dossier.diplomasFiles && (
+                            <a className="text-blue-600 underline" href={`${api.defaults.baseURL}${dossier.diplomasFiles}`} target="_blank" rel="noreferrer">Diplômes</a>
+                          )}
+                          {dossier.passportPhoto && (
+                            <a className="text-blue-600 underline" href={`${api.defaults.baseURL}${dossier.passportPhoto}`} target="_blank" rel="noreferrer">Passeport</a>
+                          )}
+                          {dossier.photoPersonne && (
+                            <a className="text-blue-600 underline" href={`${api.defaults.baseURL}${dossier.photoPersonne}`} target="_blank" rel="noreferrer">Photo</a>
+                          )}
+                          {dossier.attestationsTravail && (
+                            <a className="text-blue-600 underline" href={`${api.defaults.baseURL}${dossier.attestationsTravail}`} target="_blank" rel="noreferrer">Attest. Travail</a>
+                          )}
+                          {dossier.attestationsStage && (
+                            <a className="text-blue-600 underline" href={`${api.defaults.baseURL}${dossier.attestationsStage}`} target="_blank" rel="noreferrer">Attest. Stage</a>
+                          )}
+                        </td>
+                      </>
+                    )}
+                    <td className="px-6 py-3 text-sm whitespace-nowrap">
                       {new Date(dossier.createdAt).toLocaleDateString("fr-FR", {
                       year: "numeric",
                       month: "long",
@@ -333,7 +378,7 @@ const Candidates = () => {
                       minute: "2-digit",
                     })}
                     </td>
-                    <td className="relative px-6 py-4 text-sm">
+                    <td className="relative px-6 py-3 text-sm">
                       {getStatusBadge(dossier.status)}
                       {dossier.comment?.length > 0 && (
                         <span
@@ -344,7 +389,7 @@ const Candidates = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm">
+                    <td className="px-6 py-3 text-sm">
                       <Dropdown overlay={actionMenu(dossier)} trigger={["click"]}>
                         <button className="text-gray-600 hover:text-black">
                           <MoreVertical size={18} />

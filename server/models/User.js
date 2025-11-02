@@ -18,7 +18,7 @@ const userSchema = new Schema({
     enum: ['customerService', 'admin' , 'manager' , 'candidateService' , 'resumeService', 'client'],
     default: 'manager'
   }
-});
+}, { timestamps: true });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

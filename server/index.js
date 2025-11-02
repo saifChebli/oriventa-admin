@@ -11,9 +11,11 @@ import creationRouter from './routes/creation.route.js'
 import clientRouter from './routes/client.route.js'
 import suiviRouter from './routes/suivi.route.js'
 import contactRouter from './routes/contact.route.js'
+import messageRouter from './routes/message.route.js'
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import imapService from './services/imapService.js';
 const app = express()
 const port = process.env.PORT
 
@@ -66,10 +68,15 @@ app.use('/api/creation' , creationRouter)
 app.use('/api/clients' , clientRouter)
 app.use('/api/contact' , contactRouter)
 app.use('/api/suivi', suiviRouter)
+app.use('/api/messages', messageRouter)
 
 // DB Connection
 
 connectDB()
+
+// Initialize IMAP service for receiving emails
+// This will start periodic email fetching
+imapService.initialize();
 
 app.get( "/" , (req,res) => {
     res.send('Welcome to Oriventa Pro Services API')

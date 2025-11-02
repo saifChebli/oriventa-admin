@@ -20,6 +20,7 @@ const Settings = () => {
 
 
   const [filterValue, setFilterValue] = useState("all");
+  const [emailFilter, setEmailFilter] = useState("");
   // Update Password
 
   const validateMatch = (password, confirmPassword) => {
@@ -182,6 +183,21 @@ const Settings = () => {
               <span>Update Password</span>
             </button>
           )}
+        </div>
+        {/* Member since / Last updated */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600">Membre depuis</p>
+            <p className="font-medium text-gray-900">
+              {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
+            </p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600">Dernière mise à jour</p>
+            <p className="font-medium text-gray-900">
+              {profile.updatedAt ? new Date(profile.updatedAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+            </p>
+          </div>
         </div>
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -359,7 +375,7 @@ const Settings = () => {
       return user.role === "client";
     }
     return false;
-  });
+  }).filter(u => emailFilter.trim() === '' || (u.email && u.email.toLowerCase().includes(emailFilter.trim().toLowerCase())));
 
 
 
@@ -376,6 +392,17 @@ const Settings = () => {
             <option value="staff">Staff members</option>
             <option value="clients">Clients</option>
           </select>
+          </div>
+          {/* Filter by email */}
+          <div className="flex flex-col items-start space-y-2">
+            <label className="">Filter by email</label>
+            <input
+              type="text"
+              placeholder="email contains..."
+              value={emailFilter}
+              onChange={(e) => setEmailFilter(e.target.value)}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            />
           </div>
           {(profile.role === "admin" || profile.role === "manager") && (
             <button
@@ -444,8 +471,10 @@ const Settings = () => {
   const [isSuiviModalOpen, setIsSuiviModalOpen] = useState(false);
   const [suivi, setSuivi] = useState(null);
   const [suiviLoading, setSuiviLoading] = useState(false);
-  const [cvFile, setCvFile] = useState(null);
-  const [lmFile, setLmFile] = useState(null);
+  const [cvFile, setCvFile] = useState(null); // backward compat
+  const [lmFile, setLmFile] = useState(null); // backward compat
+  const [cvFiles, setCvFiles] = useState([]);
+  const [lmFiles, setLmFiles] = useState([]);
 
   const handleViewUser = (user) => {
     setSelectedUser(user);
@@ -719,37 +748,59 @@ const Settings = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-gray-700">CV (PDF)</label>
-                  <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setCvFile(e.target.files?.[0] || null)} className="block w-full text-sm" />
+                  <label className="text-sm text-gray-700">CV (PDF/DOC) - multiple</label>
+                  <input multiple type="file" accept=".pdf,.doc,.docx,.txt" onChange={(e) => { setCvFiles(Array.from(e.target.files || [])); setCvFile(null); }} className="block w-full text-sm" />
+                  {/* Existing single file link */}
                   {suivi.cvFile && (
-                    <a href={`${api.defaults.baseURL}${suivi.cvFile}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800">
-                      Télécharger CV actuel
+                    <a href={`${api.defaults.baseURL}${suivi.cvFile}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800 block mt-1">
+                      Télécharger CV actuel (ancien)
                     </a>
+                  )}
+                  {/* New multiple files list */}
+                  {Array.isArray(suivi.cvFiles) && suivi.cvFiles.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {suivi.cvFiles.map((file, idx) => (
+                        <a key={`cv-${idx}`} href={`${api.defaults.baseURL}${file}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800 block">
+                          Télécharger CV {idx + 1}
+                        </a>
+                      ))}
+                    </div>
                   )}
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700">Lettre de motivation</label>
-                  <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setLmFile(e.target.files?.[0] || null)} className="block w-full text-sm" />
+                  <label className="text-sm text-gray-700">Lettre de motivation - multiple</label>
+                  <input multiple type="file" accept=".pdf,.doc,.docx,.txt" onChange={(e) => { setLmFiles(Array.from(e.target.files || [])); setLmFile(null); }} className="block w-full text-sm" />
                   {suivi.lmFile && (
-                    <a href={`${api.defaults.baseURL}${suivi.lmFile}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800">
-                      Télécharger LM actuelle
+                    <a href={`${api.defaults.baseURL}${suivi.lmFile}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800 block mt-1">
+                      Télécharger LM actuelle (ancienne)
                     </a>
+                  )}
+                  {Array.isArray(suivi.lmFiles) && suivi.lmFiles.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {suivi.lmFiles.map((file, idx) => (
+                        <a key={`lm-${idx}`} href={`${api.defaults.baseURL}${file}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800 block">
+                          Télécharger LM {idx + 1}
+                        </a>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
-              {(cvFile || lmFile) && (
+              {(cvFile || lmFile || (cvFiles && cvFiles.length) || (lmFiles && lmFiles.length)) && (
                 <button
                   onClick={async () => {
                     try {
                       setSuiviLoading(true);
                       const form = new FormData();
-                      if (cvFile) {
-                        console.log('Uploading CV file:', cvFile.name, 'Size:', cvFile.size);
-                        form.append('cvFile', cvFile);
+                      // Backward compat single selections
+                      if (cvFile) { form.append('cvFile', cvFile); }
+                      if (lmFile) { form.append('lmFile', lmFile); }
+                      // Multiple selections
+                      if (cvFiles && cvFiles.length) {
+                        cvFiles.forEach(f => form.append('cvFile', f));
                       }
-                      if (lmFile) {
-                        console.log('Uploading LM file:', lmFile.name, 'Size:', lmFile.size);
-                        form.append('lmFile', lmFile);
+                      if (lmFiles && lmFiles.length) {
+                        lmFiles.forEach(f => form.append('lmFile', f));
                       }
                       
                       const res = await api.patch(`/api/suivi/${selectedUser._id}`, form, {
@@ -760,6 +811,8 @@ const Settings = () => {
                       setSuivi(res.data);
                       setCvFile(null);
                       setLmFile(null);
+                      setCvFiles([]);
+                      setLmFiles([]);
                       // Reset file inputs
                       document.querySelectorAll('input[type="file"]').forEach(input => input.value = '');
                       toast.success('Fichiers téléversés avec succès');

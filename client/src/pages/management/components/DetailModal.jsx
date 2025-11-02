@@ -60,6 +60,12 @@ const DetailsModal = ({ open, onClose, reservation }) => {
         <Descriptions.Item label="Pourquoi travailler à l'étranger">
           {reservation.reason}
         </Descriptions.Item>
+        <Descriptions.Item label="Informations supplémentaires">
+          {reservation.extra || "-"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Consentement RGPD">
+          {typeof reservation.consent !== 'undefined' ? (reservation.consent ? 'Oui' : 'Non') : '-'}
+        </Descriptions.Item>
         <Descriptions.Item label="Check-in">
           {dayjs(reservation.createdAt).format("DD MMM YYYY")}
         </Descriptions.Item>

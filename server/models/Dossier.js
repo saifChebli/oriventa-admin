@@ -9,7 +9,7 @@ const dossierSchema = new mongoose.Schema(
     address: { type: String, required: true },
     birthDate: { type: Date, required: true },
     jobType: { type: String, required: true },
-    hasCV: { type: String, enum: ["Oui", "Non"], required: true },
+    hasCV: { type: String, required: true },
     passportPhoto: { type: String },
     cvFile: { type: String }, // chemin du fichier
     photoPersonne: { type: String },

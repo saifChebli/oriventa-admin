@@ -20,6 +20,7 @@ const Contact = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterName, setFilterName] = useState("");
   const [date, setDate] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Fetch contacts
   const getContacts = async () => {
@@ -140,7 +141,7 @@ const Contact = () => {
         <p className="mt-1">Gérez les messages de contact reçus.</p>
       </div>
 
-      <div className="overflow-x-auto rounded-lg shadow border border-gray-300 p-6 my-10">
+      <div className="rounded-lg shadow border border-gray-300 p-6 my-10">
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="flex flex-col items-start">
@@ -183,17 +184,36 @@ const Contact = () => {
           </div>
         </div>
 
+        {/* Advanced columns toggle */}
+        <div className="flex items-center col-span-1 mb-4">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={showAdvanced}
+              onChange={(e) => setShowAdvanced(e.target.checked)}
+            />
+            Afficher colonnes avancées
+          </label>
+        </div>
+
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+        <div className={`${showAdvanced ? 'overflow-x-auto' : 'overflow-x-hidden'}`}>
+          <table className={`w-full border-collapse ${showAdvanced ? 'min-w-[1000px]' : ''}`}>
             <thead className="bg-gray-50">
               <tr>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium uppercase">ID</th> */}
+                {showAdvanced && (
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">ID</th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase">Nom complet</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase">Téléphone</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Message</th>
+                {showAdvanced && (
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">Message</th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase">Date</th>
+                {showAdvanced && (
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">Dernière mise à jour</th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase">Statut</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase">Actions</th>
               </tr>
@@ -202,15 +222,17 @@ const Contact = () => {
               {currentData.length > 0 ? (
                 currentData.map((contact) => (
                   <tr key={contact._id} className="hover:bg-gray-50">
-                    {/* <td className="px-6 py-4 text-sm">{contact._id}</td> */}
+                    {showAdvanced && (
+                      <td className="px-6 py-4 text-sm whitespace-nowrap">{contact._id}</td>
+                    )}
                     <td className="px-6 py-4 text-sm">{contact.name}</td>
                     <td className="px-6 py-4 text-sm">{contact.email}</td>
                     <td className="px-6 py-4 text-sm">{contact.phone}</td>
-                    <td className="px-6 py-4 text-sm">
-                      {contact.message?.length > 30
-                        ? `${contact.message.slice(0, 30)}...`
-                        : contact.message}
-                    </td>
+                    {showAdvanced && (
+                      <td className="px-6 py-4 text-sm truncate max-w-[320px]" title={contact.message || ''}>
+                        {contact.message}
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-sm">
                       {new Date(contact.createdAt).toLocaleDateString("fr-FR", {
                         year: "numeric",
@@ -220,6 +242,17 @@ const Contact = () => {
                         minute: "2-digit",
                       })}
                     </td>
+                    {showAdvanced && (
+                      <td className="px-6 py-4 text-sm">
+                        {new Date(contact.updatedAt).toLocaleDateString("fr-FR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                    )}
                     <td className="px-6 py-4">{getStatusBadge(contact.isViewed)}</td>
                     <td className="px-6 py-4">
                       <Dropdown overlay={actionMenu(contact)} trigger={["click"]}>

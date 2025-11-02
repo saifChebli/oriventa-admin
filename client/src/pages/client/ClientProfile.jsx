@@ -53,12 +53,13 @@ const ClientProfile = () => {
 
   const fetchProfileAndSuivi = async () => {
     try {
-      // Get profile from auth context (already has user data)
+      // Always fetch the latest profile from the API to ensure real DB values
+      const me = await api.get('/api/auth/me', { withCredentials: true });
       setProfile({
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        email: me.data?.email || user.email,
+        role: me.data?.role || user.role,
+        createdAt: me.data?.createdAt || user.createdAt,
+        updatedAt: me.data?.updatedAt || user.updatedAt,
       });
 
       // Get suivi data to access CV/LM files
@@ -114,13 +115,17 @@ const ClientProfile = () => {
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">Membre depuis</p>
               <p className="font-medium text-gray-900">
-                {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('fr-FR') : 'N/A'}
+                {profile.createdAt
+                  ? new Date(profile.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+                  : 'N/A'}
               </p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">Dernière mise à jour</p>
               <p className="font-medium text-gray-900">
-                {profile.updatedAt ? new Date(profile.updatedAt).toLocaleDateString('fr-FR') : 'N/A'}
+                {profile.updatedAt
+                  ? new Date(profile.updatedAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : 'N/A'}
               </p>
             </div>
           </div>
@@ -130,7 +135,7 @@ const ClientProfile = () => {
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Mes Documents</h3>
           
-          {suivi && (suivi.cvFile || suivi.lmFile) ? (
+          {suivi && (suivi.cvFile || suivi.lmFile || (Array.isArray(suivi.cvFiles) && suivi.cvFiles.length) || (Array.isArray(suivi.lmFiles) && suivi.lmFiles.length)) ? (
             <div className="space-y-3">
               {suivi.cvFile && (
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -150,6 +155,31 @@ const ClientProfile = () => {
                   </button>
                 </div>
               )}
+              {Array.isArray(suivi.cvFiles) && suivi.cvFiles.length > 0 && (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <FileText className="h-5 w-5 text-blue-600 mr-3" />
+                    <div>
+                      <p className="font-medium text-gray-900">CV (Multiples)</p>
+                      <p className="text-sm text-gray-500">Tous vos CV disponibles</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {suivi.cvFiles.map((file, idx) => (
+                      <div key={`cvf-${idx}`} className="flex items-center justify-between">
+                        <span className="text-sm text-gray-700">CV {idx + 1}</span>
+                        <button
+                          onClick={() => handleDownload(file, `CV_${idx + 1}.pdf`)}
+                          className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm"
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          Télécharger
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {suivi.lmFile && (
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -167,6 +197,31 @@ const ClientProfile = () => {
                     <Download className="h-4 w-4 mr-1" />
                     Télécharger
                   </button>
+                </div>
+              )}
+              {Array.isArray(suivi.lmFiles) && suivi.lmFiles.length > 0 && (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <FileText className="h-5 w-5 text-green-600 mr-3" />
+                    <div>
+                      <p className="font-medium text-gray-900">Lettres de Motivation (Multiples)</p>
+                      <p className="text-sm text-gray-500">Toutes vos lettres disponibles</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {suivi.lmFiles.map((file, idx) => (
+                      <div key={`lmf-${idx}`} className="flex items-center justify-between">
+                        <span className="text-sm text-gray-700">Lettre {idx + 1}</span>
+                        <button
+                          onClick={() => handleDownload(file, `Lettre_${idx + 1}.pdf`)}
+                          className="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition text-sm"
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          Télécharger
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

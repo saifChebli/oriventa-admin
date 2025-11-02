@@ -32,21 +32,40 @@ export const upsertSuivi = async (req, res) => {
     console.log('Request body:', update);
     console.log('Files received:', req.files);
 
-    // If files are uploaded for cv/lm, set their paths
+    // If files are uploaded for cv/lm, set their paths (support multiple)
     if (req.files) {
-      if (req.files.cvFile && req.files.cvFile[0]) {
-        update.cvFile = `/uploads/suivi/${req.files.cvFile[0].filename}`;
-        console.log('CV file path:', update.cvFile);
+      // Initialize arrays in case we need to push
+      if (!update.$push) update.$push = {};
+
+      if (req.files.cvFile && req.files.cvFile.length > 0) {
+        const cvPaths = req.files.cvFile.map(f => `/uploads/suivi/${f.filename}`);
+        // Backward-compat: also set last uploaded as cvFile
+        update.cvFile = cvPaths[cvPaths.length - 1];
+        // Append to array
+        update.$push.cvFiles = { $each: cvPaths };
+        console.log('CV files paths:', cvPaths);
       }
-      if (req.files.lmFile && req.files.lmFile[0]) {
-        update.lmFile = `/uploads/suivi/${req.files.lmFile[0].filename}`;
-        console.log('LM file path:', update.lmFile);
+      if (req.files.lmFile && req.files.lmFile.length > 0) {
+        const lmPaths = req.files.lmFile.map(f => `/uploads/suivi/${f.filename}`);
+        // Backward-compat: also set last uploaded as lmFile
+        update.lmFile = lmPaths[lmPaths.length - 1];
+        // Append to array
+        update.$push.lmFiles = { $each: lmPaths };
+        console.log('LM files paths:', lmPaths);
       }
     }
 
+    // Build update doc: $set normal fields, $push arrays if present
+    const updateDoc = {};
+    const setDoc = { ...update };
+    // Remove $push from $set
+    if (setDoc.$push) delete setDoc.$push;
+    if (Object.keys(setDoc).length) updateDoc.$set = setDoc;
+    if (update.$push && Object.keys(update.$push).length) updateDoc.$push = update.$push;
+
     const result = await ClientSuivi.findOneAndUpdate(
       { user: userId },
-      { $set: update },
+      updateDoc,
       { new: true, upsert: true }
     );
     

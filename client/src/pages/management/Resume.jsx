@@ -20,11 +20,13 @@ const Resume = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterFullName, setFilterFullName] = useState("");
   const [date, setDate] = useState("");
+  // Simplified view to avoid horizontal scroll; full details in modal
 
   // Fetch resumes from backend
   const getResumes = async () => {
     try {
       const response = await api.get("/api/creation", { withCredentials: true });
+  const [showAdvanced, setShowAdvanced] = useState(false);
       setResumeList(response.data);
       setFilteredResumes(response.data);
     } catch (error) {
@@ -154,7 +156,7 @@ const Resume = () => {
         <p className="mt-1">Gérez les CVs des candidats.</p>
       </div>
 
-      <div className="overflow-x-auto rounded-lg shadow border border-gray-300 p-6 my-10">
+  <div className="rounded-lg shadow border border-gray-300 p-6 my-10">
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="flex flex-col items-start">
@@ -196,35 +198,36 @@ const Resume = () => {
              className="border w-full border-gray-300 rounded-md px-2 py-1 mx-2"
               placeholder="Rechercher par date..." />
           </div>
+          
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+        <div className="rounded-lg overflow-hidden border border-gray-200">
+          <table className="w-full border-collapse table-auto text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Nom complet</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Téléphone</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Statut</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase">Nom complet</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase">Téléphone</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase">Statut</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {currentData.length > 0 ? (
                 currentData.map((resume) => (
-                  <tr key={resume._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm">{resume._id}</td>
-                    <td className="px-6 py-4 text-sm">{resume.fullName}</td>
-                    <td className="px-6 py-4 text-sm">{resume.email}</td>
-                    <td className="px-6 py-4 text-sm">{resume.phone}</td>
-                    <td className="px-6 py-4 text-sm">
+                  <tr key={resume._id} className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <td className="px-6 py-3">{resume._id}</td>
+                    <td className="px-6 py-3 truncate" title={resume.fullName || ''}>{resume.fullName}</td>
+                    <td className="px-6 py-3 truncate" title={resume.email || ''}>{resume.email}</td>
+                    <td className="px-6 py-3 whitespace-nowrap">{resume.phone}</td>
+                    <td className="px-6 py-3">
                       {new Date(resume.createdAt).toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" , hour: '2-digit', minute:'2-digit' })}
                     </td>
-                    <td className="px-6 py-4">{getStatusBadge(resume.status)}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-3">{getStatusBadge(resume.status)}</td>
+                    <td className="px-6 py-3">
                       <Dropdown overlay={actionMenu(resume)} trigger={["click"]}>
                         <button className="text-gray-600 hover:text-black">
                           <MoreVertical size={18} />
