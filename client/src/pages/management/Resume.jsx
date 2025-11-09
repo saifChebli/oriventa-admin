@@ -20,13 +20,12 @@ const Resume = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterFullName, setFilterFullName] = useState("");
   const [date, setDate] = useState("");
-  // Simplified view to avoid horizontal scroll; full details in modal
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Fetch resumes from backend
   const getResumes = async () => {
     try {
       const response = await api.get("/api/creation", { withCredentials: true });
-  const [showAdvanced, setShowAdvanced] = useState(false);
       setResumeList(response.data);
       setFilteredResumes(response.data);
     } catch (error) {
@@ -202,8 +201,8 @@ const Resume = () => {
         </div>
 
         {/* Table */}
-        <div className="rounded-lg overflow-hidden border border-gray-200">
-          <table className="w-full border-collapse table-auto text-sm">
+        <div className="rounded-lg overflow-x-auto border border-gray-200">
+          <table className="w-full border-collapse table-auto text-sm min-w-[900px]">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase">ID</th>

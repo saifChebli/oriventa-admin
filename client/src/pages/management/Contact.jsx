@@ -197,8 +197,8 @@ const Contact = () => {
         </div>
 
         {/* Table */}
-        <div className={`${showAdvanced ? 'overflow-x-auto' : 'overflow-x-hidden'}`}>
-          <table className={`w-full border-collapse ${showAdvanced ? 'min-w-[1000px]' : ''}`}>
+        <div className="overflow-x-auto">
+          <table className={`w-full border-collapse ${showAdvanced ? 'min-w-[1000px]' : 'min-w-[700px]'}`}>
             <thead className="bg-gray-50">
               <tr>
                 {showAdvanced && (

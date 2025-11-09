@@ -19,13 +19,14 @@ const Layout = () => {
     { name: "Dossiers" , path:"/candidates-management" , icon: <UserPen />},
     { name: "Resume" , path : "/resume-management" , icon : <File />},
     { name : "Contacts" , path : "/contacts-management" , icon : <Mail />},
+    { name: "Webmail", path: "/mail", icon: <Mail /> },
     { name: "Settings", path: "/settings", icon: <Settings /> },
     { name: "Logout", path: "/logout", icon: <LogOut /> },
   ];
 
   const clientNavItems = [
     { name: "Dashboard", path: "/client-dashboard", icon: <Home /> },
-    { name: "Messages", path: "/client-mail", icon: <Mail /> },
+    { name: "Webmail", path: "/mail", icon: <Mail /> },
     { name: "Suivi", path: "/client-suivi", icon: <FileText /> },
     { name: "Profile", path: "/client-profile", icon: <User /> },
     { name: "Logout", path: "/logout", icon: <LogOut /> },
@@ -38,6 +39,7 @@ const Layout = () => {
           { name: "Dashboard", path: "/", icon: <Home /> },
           { name: "Consultations", path: "/clients-management", icon: <Users /> },
           { name : "Contacts" , path : "/contacts-management" , icon : <Mail />},
+          { name: "Webmail", path: "/mail", icon: <Mail /> },
           { name: "Settings", path: "/settings", icon: <Settings /> },
           { name: "Logout", path: "/logout", icon: <LogOut /> },
     ];
@@ -47,6 +49,7 @@ const Layout = () => {
     navItems = [
           { name: "Dashboard", path: "/", icon: <Home /> },
           { name: "Dossiers", path: "/candidates-management", icon: <Users /> },
+          { name: "Webmail", path: "/mail", icon: <Mail /> },
           { name: "Settings", path: "/settings", icon: <Settings /> },
           { name: "Logout", path: "/logout", icon: <LogOut /> },
     ];
@@ -56,6 +59,7 @@ const Layout = () => {
     navItems = [
           { name: "Dashboard", path: "/", icon: <Home /> },
           { name: "Resume" , path : "/resume-management" , icon : <File />},
+          { name: "Webmail", path: "/mail", icon: <Mail /> },
           { name: "Settings", path: "/settings", icon: <Settings /> },
           { name: "Logout", path: "/logout", icon: <LogOut /> },
     ];

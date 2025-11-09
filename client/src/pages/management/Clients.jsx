@@ -232,8 +232,8 @@ const Clients = () => {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg overflow-hidden shadow border border-gray-300">
-        <table className="w-full divide-y divide-gray-200 text-sm table-auto">
+      <div className="rounded-lg overflow-x-auto shadow border border-gray-300">
+        <table className="w-full divide-y divide-gray-200 text-sm table-auto min-w-[800px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 sm:px-6 py-3 text-left font-semibold uppercase tracking-wider text-xs text-gray-700">Nom complet</th>

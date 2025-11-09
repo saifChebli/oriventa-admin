@@ -52,6 +52,46 @@ router.patch('/:userId', verifyToken, checkRole, upload.fields([
   { name: 'lmFile', maxCount: 10 }
 ]), upsertSuivi);
 
+// Delete a specific file from suivi
+router.delete('/:userId/file', verifyToken, checkRole, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { filePath, fileType } = req.body; // fileType: 'cv' or 'lm'
+    
+    if (!filePath || !fileType) {
+      return res.status(400).json({ message: 'File path and type required' });
+    }
+
+    const ClientSuivi = (await import('../models/ClientSuivi.js')).default;
+    const suivi = await ClientSuivi.findOne({ user: userId });
+    
+    if (!suivi) {
+      return res.status(404).json({ message: 'Suivi not found' });
+    }
+
+    // Delete file from filesystem
+    const fullPath = path.join(__dirname, '..', filePath);
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
+
+    // Remove from database
+    if (fileType === 'cv') {
+      suivi.cvFiles = suivi.cvFiles.filter(f => f !== filePath);
+      if (suivi.cvFile === filePath) suivi.cvFile = '';
+    } else if (fileType === 'lm') {
+      suivi.lmFiles = suivi.lmFiles.filter(f => f !== filePath);
+      if (suivi.lmFile === filePath) suivi.lmFile = '';
+    }
+
+    await suivi.save();
+    res.status(200).json({ message: 'File deleted successfully', data: suivi });
+  } catch (error) {
+    console.error('Delete file error:', error);
+    res.status(500).json({ message: 'Error deleting file' });
+  }
+});
+
 // Error handling middleware for multer
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {

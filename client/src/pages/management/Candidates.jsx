@@ -297,8 +297,8 @@ const Candidates = () => {
         </div>
 
         {/* Table */}
-        <div className={`rounded-lg overflow-hidden border border-gray-200 ${showAdvanced ? 'overflow-x-auto' : ''}`}>
-          <table className={`w-full border-collapse ${showAdvanced ? 'min-w-[1000px]' : ''} table-auto`}>
+        <div className="rounded-lg overflow-x-auto border border-gray-200">
+          <table className={`w-full border-collapse ${showAdvanced ? 'min-w-[1000px]' : 'min-w-[800px]'} table-auto`}>
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Dossier ID</th>

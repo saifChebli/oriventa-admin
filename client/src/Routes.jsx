@@ -60,6 +60,8 @@ const Routes = () => {
               >
                 <Route path="/resume-management" element={<Resume />} />
               </Route>
+              {/* Mail accessible to all authenticated users */}
+              <Route path="/mail" element={<ClientMail />} />
               {/* Client-specific routes */}
               <Route
                 element={
@@ -69,7 +71,6 @@ const Routes = () => {
                 }
               >
                 <Route path="/client-dashboard" element={<ClientDashboard />} />
-                <Route path="/client-mail" element={<ClientMail />} />
                 <Route path="/client-suivi" element={<ClientSuivi />} />
                 <Route path="/client-profile" element={<ClientProfile />} />
               </Route>

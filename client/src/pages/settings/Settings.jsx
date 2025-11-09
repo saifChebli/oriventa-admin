@@ -748,45 +748,129 @@ const Settings = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-gray-700">CV (PDF/DOC) - multiple</label>
-                  <input multiple type="file" accept=".pdf,.doc,.docx,.txt" onChange={(e) => { setCvFiles(Array.from(e.target.files || [])); setCvFile(null); }} className="block w-full text-sm" />
-                  {/* Existing single file link */}
-                  {suivi.cvFile && (
-                    <a href={`${api.defaults.baseURL}${suivi.cvFile}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800 block mt-1">
-                      Télécharger CV actuel (ancien)
-                    </a>
-                  )}
-                  {/* New multiple files list */}
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">CV (Curriculum Vitae)</label>
+                  <input 
+                    multiple 
+                    type="file" 
+                    id="cv-upload"
+                    accept=".pdf,.doc,.docx,.txt" 
+                    onChange={(e) => { 
+                      const files = Array.from(e.target.files || []);
+                      setCvFiles(files); 
+                      setCvFile(null); 
+                    }} 
+                    className="block w-full text-sm border border-gray-300 rounded-md p-2 cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                  />
+                  {cvFiles.length > 0 ? (
+                    <p className="text-xs text-green-600 mt-1">{cvFiles.length} fichier(s) sélectionné(s) - prêt à téléverser</p>
+                  ) : null}
+                  
+                  {/* Existing uploaded files */}
                   {Array.isArray(suivi.cvFiles) && suivi.cvFiles.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {suivi.cvFiles.map((file, idx) => (
-                        <a key={`cv-${idx}`} href={`${api.defaults.baseURL}${file}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800 block">
-                          Télécharger CV {idx + 1}
-                        </a>
-                      ))}
+                    <div className="mt-3">
+                      <p className="text-xs font-medium text-gray-600 mb-1">Fichiers téléversés:</p>
+                      <div className="space-y-1">
+                        {suivi.cvFiles.map((file, idx) => (
+                          <div key={`cv-${idx}`} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                            <span className="text-gray-700 text-xs flex-1 truncate" title={file.split('/').pop()}>
+                              CV {idx + 1} - {file.split('/').pop()}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <a 
+                                href={`${api.defaults.baseURL}${file}`} 
+                                download
+                                className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+                              >
+                                📥
+                              </a>
+                              <button
+                                onClick={async () => {
+                                  if (confirm('Supprimer ce fichier?')) {
+                                    try {
+                                      await api.delete(`/api/suivi/${selectedUser._id}/file`, {
+                                        data: { filePath: file, fileType: 'cv' },
+                                        withCredentials: true
+                                      });
+                                      const res = await api.get(`/api/suivi/${selectedUser._id}`, { withCredentials: true });
+                                      setSuivi(res.data);
+                                      toast.success('Fichier supprimé');
+                                    } catch (e) { toast.error('Erreur suppression'); }
+                                  }
+                                }}
+                                className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-600 rounded hover:bg-red-50"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700">Lettre de motivation - multiple</label>
-                  <input multiple type="file" accept=".pdf,.doc,.docx,.txt" onChange={(e) => { setLmFiles(Array.from(e.target.files || [])); setLmFile(null); }} className="block w-full text-sm" />
-                  {suivi.lmFile && (
-                    <a href={`${api.defaults.baseURL}${suivi.lmFile}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800 block mt-1">
-                      Télécharger LM actuelle (ancienne)
-                    </a>
-                  )}
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">Lettre de motivation</label>
+                  <input 
+                    multiple 
+                    type="file" 
+                    id="lm-upload"
+                    accept=".pdf,.doc,.docx,.txt" 
+                    onChange={(e) => { 
+                      const files = Array.from(e.target.files || []);
+                      setLmFiles(files); 
+                      setLmFile(null); 
+                    }} 
+                    className="block w-full text-sm border border-gray-300 rounded-md p-2 cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-green-50 file:text-green-700 hover:file:bg-green-100" 
+                  />
+                  {lmFiles.length > 0 ? (
+                    <p className="text-xs text-green-600 mt-1">{lmFiles.length} fichier(s) sélectionné(s) - prêt à téléverser</p>
+                  ) : null}
+                  
+                  {/* Existing uploaded files */}
                   {Array.isArray(suivi.lmFiles) && suivi.lmFiles.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {suivi.lmFiles.map((file, idx) => (
-                        <a key={`lm-${idx}`} href={`${api.defaults.baseURL}${file}`} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline hover:text-blue-800 block">
-                          Télécharger LM {idx + 1}
-                        </a>
-                      ))}
+                    <div className="mt-3">
+                      <p className="text-xs font-medium text-gray-600 mb-1">Fichiers téléversés:</p>
+                      <div className="space-y-1">
+                        {suivi.lmFiles.map((file, idx) => (
+                          <div key={`lm-${idx}`} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                            <span className="text-gray-700 text-xs flex-1 truncate" title={file.split('/').pop()}>
+                              LM {idx + 1} - {file.split('/').pop()}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <a 
+                                href={`${api.defaults.baseURL}${file}`} 
+                                download
+                                className="text-green-600 hover:text-green-800 text-xs px-2 py-1 border border-green-600 rounded hover:bg-green-50"
+                              >
+                                📥
+                              </a>
+                              <button
+                                onClick={async () => {
+                                  if (confirm('Supprimer ce fichier?')) {
+                                    try {
+                                      await api.delete(`/api/suivi/${selectedUser._id}/file`, {
+                                        data: { filePath: file, fileType: 'lm' },
+                                        withCredentials: true
+                                      });
+                                      const res = await api.get(`/api/suivi/${selectedUser._id}`, { withCredentials: true });
+                                      setSuivi(res.data);
+                                      toast.success('Fichier supprimé');
+                                    } catch (e) { toast.error('Erreur suppression'); }
+                                  }
+                                }}
+                                className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-600 rounded hover:bg-red-50"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
-              {(cvFile || lmFile || (cvFiles && cvFiles.length) || (lmFiles && lmFiles.length)) && (
+              {(cvFile || lmFile || (cvFiles && cvFiles.length > 0) || (lmFiles && lmFiles.length > 0)) ? (
                 <button
                   onClick={async () => {
                     try {
@@ -828,7 +912,7 @@ const Settings = () => {
                 >
                   {suiviLoading ? 'Téléversement...' : 'Téléverser les fichiers'}
                 </button>
-              )}
+              ) : null}
             </div>
 
             <div className="p-3 bg-gray-50 rounded">
