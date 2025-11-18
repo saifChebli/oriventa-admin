@@ -145,6 +145,36 @@ const Settings = () => {
     }
   };
 
+  // Helper function to handle file downloads
+  const handleFileDownload = async (filePath, fileName) => {
+    try {
+      // Use authenticated API request to get the file as blob
+      const response = await api.get(filePath, {
+        responseType: 'blob',
+        withCredentials: true,
+      });
+      
+      // Create blob URL and trigger download
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up blob URL
+      window.URL.revokeObjectURL(blobUrl);
+      
+      toast.success(`Téléchargement de ${fileName}...`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Erreur lors du téléchargement du fichier');
+    }
+  };
+
   const tabs = [
     { id: "general", label: "General", icon: "Settings" },
     ...(profile.role === "admin" || profile.role === "manager" || profile.role === "candidateService"
@@ -776,13 +806,12 @@ const Settings = () => {
                               CV {idx + 1} - {file.split('/').pop()}
                             </span>
                             <div className="flex items-center gap-1">
-                              <a 
-                                href={`${api.defaults.baseURL}${file}`} 
-                                download
+                              <button
+                                onClick={() => handleFileDownload(file, file.split('/').pop())}
                                 className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
                               >
                                 📥
-                              </a>
+                              </button>
                               <button
                                 onClick={async () => {
                                   if (confirm('Supprimer ce fichier?')) {
@@ -837,13 +866,12 @@ const Settings = () => {
                               LM {idx + 1} - {file.split('/').pop()}
                             </span>
                             <div className="flex items-center gap-1">
-                              <a 
-                                href={`${api.defaults.baseURL}${file}`} 
-                                download
+                              <button
+                                onClick={() => handleFileDownload(file, file.split('/').pop())}
                                 className="text-green-600 hover:text-green-800 text-xs px-2 py-1 border border-green-600 rounded hover:bg-green-50"
                               >
                                 📥
-                              </a>
+                              </button>
                               <button
                                 onClick={async () => {
                                   if (confirm('Supprimer ce fichier?')) {

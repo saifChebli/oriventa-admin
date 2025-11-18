@@ -18,25 +18,25 @@ const ClientProfile = () => {
   // Helper function to handle file downloads
   const handleDownload = async (filePath, fileName) => {
     try {
-      const fullUrl = `${api.defaults.baseURL}${filePath}`;
+      // Use authenticated API request to get the file as blob
+      const response = await api.get(filePath, {
+        responseType: 'blob',
+        withCredentials: true,
+      });
       
-      // First, check if the file exists
-      const response = await fetch(fullUrl, { method: 'HEAD' });
+      // Create blob URL and trigger download
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const blobUrl = window.URL.createObjectURL(blob);
       
-      if (!response.ok) {
-        toast.error('Le fichier n\'existe pas ou n\'est pas accessible');
-        return;
-      }
-
-      // If file exists, trigger download
       const link = document.createElement('a');
-      link.href = fullUrl;
-      link.target = '_blank';
-      link.rel = 'noreferrer';
+      link.href = blobUrl;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // Clean up blob URL
+      window.URL.revokeObjectURL(blobUrl);
       
       toast.success(`Téléchargement de ${fileName}...`);
     } catch (error) {
